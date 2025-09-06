@@ -93,11 +93,25 @@ The game now has a solid foundation with:
 
 The Discord bot includes:
 
-- **Character Management**: Create, view, and manage characters
-- **Exploration**: Explore regions and discover activities
-- **Combat System**: Turn-based combat with interactive commands
+- **Interactive Character Management**: 
+  - Modal-based character creation with name input
+  - Button-based class selection (Warrior, Mage, Rogue, Cleric)
+  - Interactive character stats with action buttons
+- **Rich Exploration System**: 
+  - Button-based activity selection (Combat, Foraging, Farming, Mining)
+  - Interactive region exploration with enemy/activity buttons
+  - Seamless activity flow with continue options
+- **Engaging Combat System**: 
+  - Button-based enemy selection
+  - Interactive combat with Attack/Defend/Use Item/Flee buttons
+  - Real-time combat updates with action buttons
+  - Post-combat continuation options
+- **Modern UI Components**: 
+  - Discord Modals for text input
+  - Interactive Buttons for actions
+  - Rich Embeds for information display
+  - Seamless user experience with UI components
 - **Admin Tools**: Bot management and data reloading
-- **Rich Embeds**: Beautiful Discord embeds for all interactions
 
 ### Adding New Content
 
