@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from ...game import PlayerCreation, PlayerClass
-from ...game.enums import StatType
+from ...game.enums import StatType, EquipmentSlot
 
 
 class CharacterCreationModal(discord.ui.Modal):
