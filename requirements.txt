@@ -1,0 +1,10 @@
+# Core dependencies
+python-dotenv>=1.0.0
+
+# Discord bot dependencies (for future use)
+# discord.py>=2.3.0
+
+# Development dependencies
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
