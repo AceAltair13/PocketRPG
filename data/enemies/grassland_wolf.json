@@ -27,5 +27,6 @@
     }
   ],
   "ai_abilities": [],
-  "spawn_regions": ["grasslands"]
+  "spawn_regions": ["grasslands"],
+  "rarity": "common"
 }

@@ -562,73 +562,7 @@ class CombatCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @app_commands.command(name="combat", description="Start combat with an enemy using interactive UI")
-    async def start_combat(self, interaction: discord.Interaction):
-        """Start combat with enemy selection"""
-        user_id = interaction.user.id
-        player = self.bot.get_player(user_id)
-        
-        if not player:
-            await interaction.response.send_message(
-                "❌ You don't have a character yet! Use `/create_character` to create one.",
-                ephemeral=True
-            )
-            return
-        
-        # Check if already in combat
-        if self.bot.get_combat(interaction.channel_id):
-            await interaction.response.send_message(
-                "❌ There's already an active combat in this channel!",
-                ephemeral=True
-            )
-            return
-        
-        # Get current region
-        region_manager = self.bot.region_manager
-        region_manager.set_current_region(player.current_region)
-        current_region = region_manager.get_current_region()
-        
-        if not current_region:
-            await interaction.response.send_message(
-                "❌ Error loading region data. Please try again later.",
-                ephemeral=True
-            )
-            return
-        
-        # Get available enemies
-        available_enemies = current_region.get_available_enemies()
-        
-        if not available_enemies:
-            await interaction.response.send_message(
-                f"❌ No enemies available in {current_region.name}.",
-                ephemeral=True
-            )
-            return
-        
-        # Create enemy selection embed
-        embed = discord.Embed(
-            title="⚔️ Choose Your Opponent",
-            description=f"Select an enemy to fight in **{current_region.name}**:",
-            color=discord.Color.red()
-        )
-        
-        # Add enemy information
-        for enemy_id in available_enemies:
-            enemy_data = data_loader.load_enemy(enemy_id)
-            if enemy_data:
-                embed.add_field(
-                    name=f"👹 {enemy_data['name']}",
-                    value=f"**Level:** {enemy_data['base_level']}\n**Type:** {enemy_data['type']}\n**Behavior:** {enemy_data['behavior']}",
-                    inline=True
-                )
-        
-        # Create enemy selection view
-        view = EnemySelectionView(player, self.bot)
-        await view.create_enemy_buttons(interaction)
-        
-        embed.set_footer(text="Choose an enemy to fight!")
-        
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+    # Combat command removed - use scout activity instead
 
 
 async def setup(bot):

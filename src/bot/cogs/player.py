@@ -263,9 +263,9 @@ class ActivitySelectionView(discord.ui.View):
         self.player = player
         self.bot = bot
     
-    @discord.ui.button(label="Combat", style=discord.ButtonStyle.danger, emoji="⚔️")
-    async def combat_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.start_activity(interaction, "combat")
+    @discord.ui.button(label="Scout", style=discord.ButtonStyle.danger, emoji="🔍")
+    async def scout_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.start_activity(interaction, "scout")
     
     @discord.ui.button(label="Foraging", style=discord.ButtonStyle.success, emoji="🌿")
     async def foraging_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -320,7 +320,7 @@ class ActivitySelectionView(discord.ui.View):
             )
             return
         
-        # Perform activity (simplified for now)
+        # Perform activity
         await interaction.response.send_message(
             f"🎯 **{self.player.name}** is performing **{activity.title()}**...",
             ephemeral=True
@@ -330,25 +330,78 @@ class ActivitySelectionView(discord.ui.View):
         import asyncio
         await asyncio.sleep(2)  # Simulate activity time
         
-        # Calculate rewards
-        experience_reward = activity_data.get('experience_reward', 0)
-        self.player.add_experience(experience_reward)
-        
-        # Consume energy
+        # Consume energy first
         self.player.modify_stat(StatType.MANA, -energy_cost)
         
-        # Create results embed
-        embed = discord.Embed(
-            title=f"✅ {activity.title()} Complete!",
-            description=f"**{self.player.name}** has finished {activity_data['description'].lower()}",
-            color=discord.Color.green()
-        )
-        
-        embed.add_field(
-            name="📈 Rewards",
-            value=f"**Experience:** +{experience_reward}\n**Energy Used:** -{energy_cost}",
-            inline=True
-        )
+        # Handle scout activity specially
+        if activity.lower() == "scout":
+            encounter = current_region.get_scout_encounter(self.player)
+            
+            if encounter:
+                # Enemy encountered!
+                enemy_data = encounter["enemy_data"]
+                encounter_type = encounter["encounter_type"]
+                
+                # Discover the enemy
+                self.player.discover_enemy(encounter["enemy_id"])
+                
+                # Create encounter embed
+                embed = discord.Embed(
+                    title="⚔️ Enemy Encountered!",
+                    description=f"**{self.player.name}** has encountered a **{enemy_data['name']}** while scouting!",
+                    color=discord.Color.red()
+                )
+                
+                # Show enemy type with emoji
+                type_emoji = {
+                    "normal": "👹",
+                    "mini_boss": "🔥",
+                    "boss": "👑"
+                }.get(encounter_type, "👹")
+                
+                embed.add_field(
+                    name=f"{type_emoji} Enemy Details",
+                    value=f"**Name:** {enemy_data['name']}\n**Level:** {enemy_data['base_level']}\n**Type:** {encounter_type.title()}",
+                    inline=True
+                )
+                
+                # Add combat button
+                from .combat import CombatView
+                combat_view = CombatView(self.player, encounter["enemy_id"], self.bot)
+                embed.set_footer(text="Choose your action!")
+                
+                await interaction.followup.send(embed=embed, view=combat_view)
+                return
+            else:
+                # No encounter
+                embed = discord.Embed(
+                    title="🔍 Scout Complete",
+                    description=f"**{self.player.name}** scouted the area but found no enemies.",
+                    color=discord.Color.blue()
+                )
+                
+                embed.add_field(
+                    name="📈 Results",
+                    value=f"**Energy Used:** -{energy_cost}\n**Status:** Area is clear",
+                    inline=True
+                )
+        else:
+            # Regular activity
+            experience_reward = activity_data.get('experience_reward', 0)
+            self.player.add_experience(experience_reward)
+            
+            # Create results embed
+            embed = discord.Embed(
+                title=f"✅ {activity.title()} Complete!",
+                description=f"**{self.player.name}** has finished {activity_data['description'].lower()}",
+                color=discord.Color.green()
+            )
+            
+            embed.add_field(
+                name="📈 Rewards",
+                value=f"**Experience:** +{experience_reward}\n**Energy Used:** -{energy_cost}",
+                inline=True
+            )
         
         # Check for level up
         if self.player.level > 1:  # Simple level up check

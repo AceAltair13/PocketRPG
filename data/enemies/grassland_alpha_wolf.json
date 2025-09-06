@@ -32,5 +32,6 @@
     }
   ],
   "ai_abilities": ["pack_leader", "intimidating_howl"],
-  "spawn_regions": ["grasslands"]
+  "spawn_regions": ["grasslands"],
+  "rarity": "rare"
 }

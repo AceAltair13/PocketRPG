@@ -122,11 +122,80 @@ class Region:
                     "name": enemy_data["name"] if discovered else "Unknown Enemy",
                     "type": enemy_data["type"],
                     "level": enemy_data["base_level"],
+                    "rarity": enemy_data.get("rarity", "common"),
                     "discovered": discovered,
                     "data": enemy_data if discovered else None
                 })
         
         return enemies
+    
+    def get_scout_encounter(self, player) -> Optional[Dict[str, Any]]:
+        """Get a random enemy encounter based on scout activity"""
+        import random
+        
+        region_data = data_loader.load_region(self.region_id)
+        if not region_data:
+            return None
+        
+        # Get scout activity data
+        scout_data = data_loader.load_activity("scout")
+        if not scout_data:
+            return None
+        
+        # Check if scout succeeds
+        success_rate = scout_data.get("success_rate", 0.7)
+        if random.random() > success_rate:
+            return None  # Scout failed, no encounter
+        
+        # Get enemies in this region
+        enemy_ids = region_data.get("enemies", [])
+        if not enemy_ids:
+            return None
+        
+        # Group enemies by type for weighted selection
+        enemies_by_type = {"normal": [], "mini_boss": [], "boss": []}
+        for enemy_id in enemy_ids:
+            enemy_data = data_loader.load_enemy(enemy_id)
+            if enemy_data:
+                enemy_type = enemy_data.get("type", "normal")
+                enemies_by_type[enemy_type].append(enemy_data)
+        
+        # Use encounter rates to select enemy type
+        encounter_rates = scout_data.get("encounter_rates", {
+            "normal": 0.6,
+            "mini_boss": 0.3,
+            "boss": 0.1
+        })
+        
+        # Weighted random selection
+        rand = random.random()
+        selected_type = "normal"
+        cumulative = 0
+        
+        for enemy_type, rate in encounter_rates.items():
+            cumulative += rate
+            if rand <= cumulative:
+                selected_type = enemy_type
+                break
+        
+        # Select random enemy of the chosen type
+        available_enemies = enemies_by_type.get(selected_type, [])
+        if not available_enemies:
+            # Fallback to any available enemy
+            all_enemies = []
+            for enemy_list in enemies_by_type.values():
+                all_enemies.extend(enemy_list)
+            if not all_enemies:
+                return None
+            selected_enemy = random.choice(all_enemies)
+        else:
+            selected_enemy = random.choice(available_enemies)
+        
+        return {
+            "enemy_id": selected_enemy["id"],
+            "enemy_data": selected_enemy,
+            "encounter_type": selected_type
+        }
     
     def get_environmental_effects(self) -> List[str]:
         """Get environmental effects in this region"""

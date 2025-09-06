@@ -1,0 +1,26 @@
+{
+  "id": "scout",
+  "name": "Scout",
+  "description": "Explore the area carefully to scout for enemies. Higher chance of encountering common enemies, but rare enemies like mini-bosses may appear.",
+  "energy_cost": 8,
+  "requirements": {
+    "level": 1,
+    "items": [],
+    "tools": []
+  },
+  "rewards": {
+    "experience": 0,
+    "gold": 0,
+    "items": []
+  },
+  "success_rate": 0.7,
+  "duration": 0,
+  "category": "exploration",
+  "region_specific": true,
+  "enemy_encounter": true,
+  "encounter_rates": {
+    "normal": 0.6,
+    "mini_boss": 0.3,
+    "boss": 0.1
+  }
+}

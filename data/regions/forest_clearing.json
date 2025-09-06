@@ -10,7 +10,7 @@
   },
   "loot_multiplier": 1.5,
   "enemy_level_bonus": 1,
-  "available_activities": ["combat", "foraging", "mining"],
+  "available_activities": ["scout", "foraging", "mining"],
   "enemies": ["forest_spider", "forest_bear", "forest_guardian"],
   "travel_cost": {
     "gold": 10,
