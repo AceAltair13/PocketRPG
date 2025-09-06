@@ -103,7 +103,7 @@ class EnemySelectionView(discord.ui.View):
         # Map enemy type from data to enum
         enemy_type_map = {
             "normal": EnemyType.NORMAL,
-            "mini_boss": EnemyType.MINI_BOSS,
+            "mini_boss": EnemyType.MINIBOSS,
             "boss": EnemyType.BOSS
         }
         
