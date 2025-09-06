@@ -6,8 +6,8 @@ Inherits from Entity and adds player-specific functionality
 from typing import Dict, List, Optional, Any
 from enum import Enum
 from .entity import Entity, EntityType, StatType
-from .inventory import Inventory
-from .equipment import Equipment
+from ..items.inventory import Inventory
+from ..items.equipment import Equipment
 
 
 class PlayerClass(Enum):

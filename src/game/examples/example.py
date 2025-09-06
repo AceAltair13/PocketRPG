@@ -3,12 +3,12 @@ Example usage of the RPG game classes
 Demonstrates how to create and use players, enemies, items, and combat
 """
 
-from .player import Player, PlayerClass
-from .enemy import Enemy, EnemyType, EnemyBehavior
-from .item import CommonItems
-from .combat import Combat
-from .effect import CommonEffects
-from .entity import StatType
+from ..entities.player import Player, PlayerClass
+from ..entities.enemy import Enemy, EnemyType, EnemyBehavior
+from ..items.item import CommonItems
+from ..systems.combat import Combat
+from ..systems.effect import CommonEffects
+from ..entities.entity import StatType
 
 
 def create_example_player() -> Player:

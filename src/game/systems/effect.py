@@ -95,7 +95,7 @@ class StatModifierEffect(Effect):
     
     def apply(self, entity) -> None:
         """Apply stat modifications to the entity"""
-        from .entity import StatType
+        from ..entities.entity import StatType
         
         for stat_name, modifier in self.stat_modifiers.items():
             try:
@@ -107,7 +107,7 @@ class StatModifierEffect(Effect):
     
     def remove(self, entity) -> None:
         """Remove stat modifications from the entity"""
-        from .entity import StatType
+        from ..entities.entity import StatType
         
         for stat_name, modifier in self.stat_modifiers.items():
             try:

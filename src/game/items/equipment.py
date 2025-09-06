@@ -6,7 +6,7 @@ Handles equipment slots and stat calculations
 from typing import Dict, List, Optional, Any
 from enum import Enum
 from .item import Item, ItemType, EquipmentItem
-from .entity import StatType
+from ..entities.entity import StatType
 
 
 class EquipmentSlot(Enum):

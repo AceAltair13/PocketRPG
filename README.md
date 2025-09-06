@@ -20,11 +20,16 @@ PocketRPG/
 ├── .gitignore          # Git ignore file
 ├── src/                # Source code
 │   ├── __init__.py
-│   ├── game/           # Game logic
-│   ├── bot/            # Discord bot functionality
-│   └── utils/          # Utility functions
+│   └── game/           # Game logic (restructured)
+│       ├── __init__.py # Main game module with simplified imports
+│       ├── entities/   # Entity classes (Player, Enemy, Entity)
+│       ├── items/      # Item system (Item, Inventory, Equipment)
+│       ├── systems/    # Game systems (Combat, Effects)
+│       └── examples/   # Usage examples and demonstrations
 ├── tests/              # Test files
 └── docs/               # Documentation
+    ├── class_diagram.md
+    └── restructured_architecture.md
 ```
 
 ## Setup
@@ -44,6 +49,16 @@ PocketRPG/
 
 ```bash
 python main.py
+```
+
+## Testing the Game Systems
+
+```bash
+# Run the example combat scenario
+python -c "from src.game import run_example_combat; run_example_combat()"
+
+# Test simplified imports
+python -c "from src.game import Player, Enemy, Combat; print('All imports working!')"
 ```
 
 ## Development
