@@ -57,9 +57,9 @@ class PocketRPG(commands.Bot):
     async def load_cogs(self):
         """Load all command cogs"""
         cogs = [
-            'src.bot.cogs.enhanced_player',
+            'src.bot.cogs.player',
             'src.bot.cogs.game',
-            'src.bot.cogs.enhanced_combat',
+            'src.bot.cogs.combat',
             'src.bot.cogs.admin'
         ]
         

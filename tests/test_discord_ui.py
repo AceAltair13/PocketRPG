@@ -4,8 +4,8 @@ Tests for enhanced Discord UI components
 
 import pytest
 from unittest.mock import Mock
-from src.bot.cogs.enhanced_player import CharacterCreationModal, ClassSelectionView, CharacterActionView
-from src.bot.cogs.enhanced_combat import EnemySelectionView, CombatView
+from src.bot.cogs.player import CharacterCreationModal, ClassSelectionView, CharacterActionView
+from src.bot.cogs.combat import EnemySelectionView, CombatView
 
 
 class TestUIComponentIntegration:
@@ -14,7 +14,7 @@ class TestUIComponentIntegration:
     def test_character_creation_flow(self):
         """Test character creation flow components"""
         # Test that all required components exist
-        from src.bot.cogs.enhanced_player import CharacterCreationModal, ClassSelectionView, CharacterActionView
+        from src.bot.cogs.player import CharacterCreationModal, ClassSelectionView, CharacterActionView
         
         # Verify classes exist and can be imported
         assert CharacterCreationModal is not None
@@ -24,7 +24,7 @@ class TestUIComponentIntegration:
     def test_combat_flow(self):
         """Test combat flow components"""
         # Test that all required components exist
-        from src.bot.cogs.enhanced_combat import EnemySelectionView, CombatView, ContinueAfterCombatView
+        from src.bot.cogs.combat import EnemySelectionView, CombatView, ContinueAfterCombatView
         
         # Verify classes exist and can be imported
         assert EnemySelectionView is not None
