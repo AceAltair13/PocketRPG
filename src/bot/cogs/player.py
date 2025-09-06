@@ -365,9 +365,28 @@ class ActivitySelectionView(discord.ui.View):
                     inline=True
                 )
                 
+                # Create enemy instance for combat
+                from ...game.entities.enemy import Enemy, EnemyType, EnemyBehavior
+                
+                # Map enemy type from data to enum
+                enemy_type_map = {
+                    "normal": EnemyType.NORMAL,
+                    "mini_boss": EnemyType.MINI_BOSS,
+                    "boss": EnemyType.BOSS
+                }
+                
+                enemy_type = enemy_type_map.get(enemy_data.get('type', 'normal'), EnemyType.NORMAL)
+                
+                enemy_instance = Enemy(
+                    name=enemy_data['name'],
+                    enemy_type=enemy_type,
+                    level=enemy_data['base_level'],
+                    behavior=EnemyBehavior.AGGRESSIVE
+                )
+                
                 # Add combat button
                 from .combat import CombatView
-                combat_view = CombatView(self.player, encounter["enemy_id"], self.bot)
+                combat_view = CombatView(self.player, enemy_instance, self.bot)
                 embed.set_footer(text="Choose your action!")
                 
                 await interaction.followup.send(embed=embed, view=combat_view)
