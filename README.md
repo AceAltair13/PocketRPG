@@ -51,6 +51,13 @@ PocketRPG/
    ```bash
    pip install -r requirements.txt
    ```
+4. Set up Discord bot:
+   - Create a Discord application at https://discord.com/developers/applications
+   - Create a bot and copy the token
+   - Create a `.env` file with your Discord token:
+   ```
+   DISCORD_TOKEN=your_bot_token_here
+   ```
 
 ## Running the Project
 
@@ -80,6 +87,17 @@ The game now has a solid foundation with:
 - **Region system**: Players start in "Grasslands" and can unlock new regions
 - **Activity system**: Foundation for farming, mining, foraging, and combat
 - **Incremental updates**: Add new content by simply adding JSON files
+- **Discord bot integration**: Full Discord bot with slash commands and interactive gameplay
+
+## Discord Bot Features
+
+The Discord bot includes:
+
+- **Character Management**: Create, view, and manage characters
+- **Exploration**: Explore regions and discover activities
+- **Combat System**: Turn-based combat with interactive commands
+- **Admin Tools**: Bot management and data reloading
+- **Rich Embeds**: Beautiful Discord embeds for all interactions
 
 ### Adding New Content
 
