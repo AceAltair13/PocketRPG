@@ -305,10 +305,10 @@ class TestEquipment:
         )
         weapon.stat_bonuses = {"attack": 5}
         
-        success = equipment.equip_item(weapon, EquipmentSlot.WEAPON)
+        success = equipment.equip_item(weapon, EquipmentSlot.MAIN_HAND)
         
         assert success is True
-        assert equipment.get_equipped_item(EquipmentSlot.WEAPON) == weapon
+        assert equipment.get_equipped_item(EquipmentSlot.MAIN_HAND) == weapon
         assert len(equipment.get_equipped_items()) == 1
     
     def test_unequip_item(self):
@@ -326,12 +326,12 @@ class TestEquipment:
         )
         weapon.stat_bonuses = {"attack": 5}
         
-        equipment.equip_item(weapon, EquipmentSlot.WEAPON)
+        equipment.equip_item(weapon, EquipmentSlot.MAIN_HAND)
         
         # Unequip
-        unequipped = equipment.unequip_item(EquipmentSlot.WEAPON)
+        unequipped = equipment.unequip_item(EquipmentSlot.MAIN_HAND)
         assert unequipped == weapon
-        assert equipment.get_equipped_item(EquipmentSlot.WEAPON) is None
+        assert equipment.get_equipped_item(EquipmentSlot.MAIN_HAND) is None
         assert len(equipment.get_equipped_items()) == 0
     
     def test_stat_bonuses(self):
@@ -349,7 +349,7 @@ class TestEquipment:
         )
         weapon.stat_bonuses = {"attack": 10, "defense": 5}
         
-        equipment.equip_item(weapon, EquipmentSlot.WEAPON)
+        equipment.equip_item(weapon, EquipmentSlot.MAIN_HAND)
         
         bonuses = equipment.get_total_bonuses()
         assert bonuses[StatType.ATTACK] == 10

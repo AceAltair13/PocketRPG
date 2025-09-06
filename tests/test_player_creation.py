@@ -66,7 +66,7 @@ class TestPlayerCreation:
         player = PlayerCreation.create_player("TestEquipped")
         
         # Check if fists are equipped
-        equipped_weapon = player.equipment.get_equipped_item(EquipmentSlot.WEAPON)
+        equipped_weapon = player.equipment.get_equipped_item(EquipmentSlot.MAIN_HAND)
         assert equipped_weapon is not None
         assert equipped_weapon.name == "Bare Fists"
         assert equipped_weapon.damage == 3

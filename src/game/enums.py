@@ -83,16 +83,19 @@ class ItemQuality(Enum):
 
 class EquipmentSlot(Enum):
     """Available equipment slots"""
-    WEAPON = "weapon"
+    # Armor slots
     HEAD = "head"
-    CHEST = "chest"
-    LEGS = "legs"
-    FEET = "feet"
-    HANDS = "hands"
-    RING_1 = "ring_1"
-    RING_2 = "ring_2"
-    NECKLACE = "necklace"
-    ACCESSORY = "accessory"
+    BODY = "body"
+    BOOTS = "boots"
+    
+    # Weapon slots
+    MAIN_HAND = "main_hand"
+    OFF_HAND = "off_hand"
+    
+    # Accessory slots (3 slots)
+    ACCESSORY_1 = "accessory_1"
+    ACCESSORY_2 = "accessory_2"
+    ACCESSORY_3 = "accessory_3"
 
 
 class EffectType(Enum):

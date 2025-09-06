@@ -65,6 +65,13 @@ class CharacterCreationModal(discord.ui.Modal):
                 inline=False
             )
         
+        # Add equipment slot information
+        embed.add_field(
+            name="🛡️ Equipment Slots",
+            value="• **Armor:** Head, Body, Boots\n• **Weapons:** Main Hand, Off-Hand\n• **Accessories:** 3 slots (rings, amulets, etc.)",
+            inline=False
+        )
+        
         await interaction.response.send_message(embed=embed, view=view, )
 
 

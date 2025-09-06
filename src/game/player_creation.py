@@ -74,7 +74,7 @@ class PlayerCreation:
             fists.critical_multiplier = weapon_stats.get("critical_multiplier", 1.5)
             
         # Equip the fists
-        player.equipment.equip_item(fists, EquipmentSlot.WEAPON)
+        player.equipment.equip_item(fists, EquipmentSlot.MAIN_HAND)
     
     @staticmethod
     def get_available_classes() -> list[PlayerClass]:
