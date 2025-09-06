@@ -384,6 +384,11 @@ class ActivitySelectionView(discord.ui.View):
                     behavior=EnemyBehavior.AGGRESSIVE
                 )
                 
+                # Start combat
+                from ...game import Combat
+                combat = Combat([self.player, enemy_instance])
+                self.bot.set_combat(interaction.channel_id, combat)
+                
                 # Add combat button
                 from .combat import CombatView
                 combat_view = CombatView(self.player, enemy_instance, self.bot)
