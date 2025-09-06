@@ -306,7 +306,7 @@ class CharacterActionView(discord.ui.View):
         )
         
         # Get inventory items
-        inventory_items = self.player.inventory.get_all_items()
+        inventory_items = self.player.inventory.items
         
         if not inventory_items:
             embed.add_field(
@@ -317,11 +317,11 @@ class CharacterActionView(discord.ui.View):
         else:
             # Group items by type
             items_by_type = {}
-            for item, quantity in inventory_items.items():
+            for item_name, item in inventory_items.items():
                 item_type = item.item_type.value.title()
                 if item_type not in items_by_type:
                     items_by_type[item_type] = []
-                items_by_type[item_type].append((item, quantity))
+                items_by_type[item_type].append((item, item.quantity))
             
             # Display items by type
             for item_type, items in items_by_type.items():
@@ -345,7 +345,7 @@ class CharacterActionView(discord.ui.View):
                 )
         
         # Add inventory stats
-        total_items = sum(quantity for _, quantity in inventory_items.items())
+        total_items = sum(item.quantity for item in inventory_items.values())
         embed.add_field(
             name="📊 Inventory Stats",
             value=f"**Total Items:** {total_items}\n**Slots Used:** {len(inventory_items)}/{self.player.inventory.max_capacity}",
