@@ -65,12 +65,6 @@ class CharacterCreationModal(discord.ui.Modal):
                 inline=False
             )
         
-        # Add equipment slot information
-        embed.add_field(
-            name="🛡️ Equipment Slots",
-            value="• **Armor:** Head, Body, Boots\n• **Weapons:** Main Hand, Off-Hand\n• **Accessories:** 3 slots (rings, amulets, etc.)",
-            inline=False
-        )
         
         await interaction.response.send_message(embed=embed, view=view, )
 
@@ -252,16 +246,46 @@ class CharacterActionView(discord.ui.View):
         
         embed.add_field(name="📈 Stats", value=stats_text, inline=True)
         
-        # Equipment section
-        equipped_weapon = None
-        for slot, item in self.player.equipment.equipped_items.items():
-            if item is not None:
-                equipped_weapon = item
-                break
+        # Equipment section - show all slots
+        equipment_text = ""
         
-        equipment_text = f"**Weapon:** {equipped_weapon.name if equipped_weapon else 'None'}\n**Gold:** {self.player.gold}\n**Skill Points:** {self.player.skill_points}"
+        # Armor slots
+        armor_slots = {
+            EquipmentSlot.HEAD: "🪖 Head",
+            EquipmentSlot.BODY: "🛡️ Body", 
+            EquipmentSlot.BOOTS: "👢 Boots"
+        }
         
-        embed.add_field(name="⚔️ Equipment", value=equipment_text, inline=True)
+        for slot, emoji_name in armor_slots.items():
+            item = self.player.equipment.get_equipped_item(slot)
+            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
+        
+        # Weapon slots
+        weapon_slots = {
+            EquipmentSlot.MAIN_HAND: "⚔️ Main Hand",
+            EquipmentSlot.OFF_HAND: "🗡️ Off-Hand"
+        }
+        
+        for slot, emoji_name in weapon_slots.items():
+            item = self.player.equipment.get_equipped_item(slot)
+            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
+        
+        # Accessory slots
+        accessory_slots = {
+            EquipmentSlot.ACCESSORY_1: "💍 Accessory 1",
+            EquipmentSlot.ACCESSORY_2: "🔮 Accessory 2",
+            EquipmentSlot.ACCESSORY_3: "✨ Accessory 3"
+        }
+        
+        for slot, emoji_name in accessory_slots.items():
+            item = self.player.equipment.get_equipped_item(slot)
+            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
+        
+        embed.add_field(name="🛡️ Equipment", value=equipment_text, inline=False)
+        
+        # Additional info
+        info_text = f"**Gold:** {self.player.gold}\n**Skill Points:** {self.player.skill_points}"
+        embed.add_field(name="💰 Resources", value=info_text, inline=True)
         
         # Location section
         embed.add_field(name="🗺️ Location", value=f"**{self.player.current_region.title()}**", inline=True)
@@ -587,16 +611,46 @@ class ContinueView(discord.ui.View):
         
         embed.add_field(name="📈 Stats", value=stats_text, inline=True)
         
-        # Equipment section
-        equipped_weapon = None
-        for slot, item in self.player.equipment.equipped_items.items():
-            if item is not None:
-                equipped_weapon = item
-                break
+        # Equipment section - show all slots
+        equipment_text = ""
         
-        equipment_text = f"**Weapon:** {equipped_weapon.name if equipped_weapon else 'None'}\n**Gold:** {self.player.gold}\n**Skill Points:** {self.player.skill_points}"
+        # Armor slots
+        armor_slots = {
+            EquipmentSlot.HEAD: "🪖 Head",
+            EquipmentSlot.BODY: "🛡️ Body", 
+            EquipmentSlot.BOOTS: "👢 Boots"
+        }
         
-        embed.add_field(name="⚔️ Equipment", value=equipment_text, inline=True)
+        for slot, emoji_name in armor_slots.items():
+            item = self.player.equipment.get_equipped_item(slot)
+            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
+        
+        # Weapon slots
+        weapon_slots = {
+            EquipmentSlot.MAIN_HAND: "⚔️ Main Hand",
+            EquipmentSlot.OFF_HAND: "🗡️ Off-Hand"
+        }
+        
+        for slot, emoji_name in weapon_slots.items():
+            item = self.player.equipment.get_equipped_item(slot)
+            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
+        
+        # Accessory slots
+        accessory_slots = {
+            EquipmentSlot.ACCESSORY_1: "💍 Accessory 1",
+            EquipmentSlot.ACCESSORY_2: "🔮 Accessory 2",
+            EquipmentSlot.ACCESSORY_3: "✨ Accessory 3"
+        }
+        
+        for slot, emoji_name in accessory_slots.items():
+            item = self.player.equipment.get_equipped_item(slot)
+            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
+        
+        embed.add_field(name="🛡️ Equipment", value=equipment_text, inline=False)
+        
+        # Additional info
+        info_text = f"**Gold:** {self.player.gold}\n**Skill Points:** {self.player.skill_points}"
+        embed.add_field(name="💰 Resources", value=info_text, inline=True)
         
         # Location section
         embed.add_field(name="🗺️ Location", value=f"**{self.player.current_region.title()}**", inline=True)
