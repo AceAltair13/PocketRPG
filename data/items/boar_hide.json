@@ -1,0 +1,12 @@
+{
+  "id": "boar_hide",
+  "name": "Boar Hide",
+  "description": "A tough hide from a grassland boar. Good for armor crafting.",
+  "type": "material",
+  "rarity": "common",
+  "quality": "normal",
+  "value": 15,
+  "level_requirement": 1,
+  "stackable": true,
+  "max_stack": 99
+}

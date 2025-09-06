@@ -155,6 +155,12 @@ class CharacterActionView(discord.ui.View):
         embed = self.create_character_embed()
         await interaction.response.send_message(embed=embed, )
     
+    @discord.ui.button(label="Inventory", style=discord.ButtonStyle.secondary, emoji="🎒")
+    async def view_inventory(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """View inventory contents"""
+        embed = self.create_inventory_embed()
+        await interaction.response.send_message(embed=embed, )
+    
     @discord.ui.button(label="Explore", style=discord.ButtonStyle.success, emoji="🗺️")
     async def explore(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Start exploring"""
@@ -289,6 +295,62 @@ class CharacterActionView(discord.ui.View):
         
         # Location section
         embed.add_field(name="🗺️ Location", value=f"**{self.player.current_region.title()}**", inline=True)
+        
+        return embed
+    
+    def create_inventory_embed(self):
+        """Create inventory display embed"""
+        embed = discord.Embed(
+            title=f"🎒 {self.player.name}'s Inventory",
+            color=discord.Color.blue()
+        )
+        
+        # Get inventory items
+        inventory_items = self.player.inventory.get_all_items()
+        
+        if not inventory_items:
+            embed.add_field(
+                name="📦 Inventory",
+                value="Your inventory is empty.",
+                inline=False
+            )
+        else:
+            # Group items by type
+            items_by_type = {}
+            for item, quantity in inventory_items.items():
+                item_type = item.item_type.value.title()
+                if item_type not in items_by_type:
+                    items_by_type[item_type] = []
+                items_by_type[item_type].append((item, quantity))
+            
+            # Display items by type
+            for item_type, items in items_by_type.items():
+                item_text = ""
+                for item, quantity in items:
+                    # Add rarity emoji
+                    rarity_emoji = {
+                        "common": "⚪",
+                        "uncommon": "🟢", 
+                        "rare": "🔵",
+                        "epic": "🟣",
+                        "legendary": "🟡"
+                    }.get(item.rarity.value, "⚪")
+                    
+                    item_text += f"{rarity_emoji} **{item.name}** x{quantity}\n"
+                
+                embed.add_field(
+                    name=f"📦 {item_type}",
+                    value=item_text.strip(),
+                    inline=True
+                )
+        
+        # Add inventory stats
+        total_items = sum(quantity for _, quantity in inventory_items.items())
+        embed.add_field(
+            name="📊 Inventory Stats",
+            value=f"**Total Items:** {total_items}\n**Slots Used:** {len(inventory_items)}/{self.player.inventory.max_capacity}",
+            inline=False
+        )
         
         return embed
 
@@ -460,6 +522,15 @@ class ActivitySelectionView(discord.ui.View):
                     level=enemy_data['base_level'],
                     behavior=EnemyBehavior.AGGRESSIVE
                 )
+                
+                # Load loot table from enemy data
+                loot_table = enemy_data.get('loot_table', [])
+                for loot_entry in loot_table:
+                    enemy_instance.add_loot_item(
+                        item_name=loot_entry['item'],
+                        drop_chance=loot_entry['drop_chance'],
+                        quantity=loot_entry['quantity'][0] if isinstance(loot_entry['quantity'], list) else loot_entry['quantity']
+                    )
                 
                 # Start combat
                 from ...game import Combat

@@ -1,0 +1,12 @@
+{
+  "id": "wolf_fang",
+  "name": "Wolf Fang",
+  "description": "A sharp fang from a grassland wolf. Useful for crafting weapons.",
+  "type": "material",
+  "rarity": "common",
+  "quality": "normal",
+  "value": 12,
+  "level_requirement": 1,
+  "stackable": true,
+  "max_stack": 99
+}

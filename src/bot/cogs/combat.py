@@ -226,9 +226,45 @@ class CombatView(discord.ui.View):
             self.player.add_experience(exp_reward)
             self.player.add_gold(gold_reward)
             
+            # Generate and give loot drops
+            loot_drops = self.enemy.generate_loot()
+            loot_text = ""
+            
+            if loot_drops:
+                for loot in loot_drops:
+                    item_id = loot['item_name']
+                    quantity = loot['quantity']
+                    
+                    # Load item data
+                    item_data = self.bot.region_manager.data_loader.load_item(item_id)
+                    if item_data:
+                        # Create item instance
+                        from ...game.items.item import Item
+                        from ...game.enums import ItemType, ItemRarity, ItemQuality
+                        
+                        item = Item(
+                            name=item_data['name'],
+                            item_type=ItemType(item_data['type']),
+                            description=item_data['description'],
+                            rarity=ItemRarity(item_data['rarity']),
+                            quality=ItemQuality(item_data['quality']),
+                            value=item_data['value']
+                        )
+                        
+                        # Add to player inventory
+                        self.player.inventory.add_item(item, quantity)
+                        
+                        # Add to loot display
+                        loot_text += f"• **{item.name}** x{quantity}\n"
+            
+            # Create rewards text
+            rewards_text = f"**Experience:** +{exp_reward}\n**Gold:** +{gold_reward}"
+            if loot_text:
+                rewards_text += f"\n\n**Loot Drops:**\n{loot_text.strip()}"
+            
             embed.add_field(
                 name="🎁 Rewards",
-                value=f"**Experience:** +{exp_reward}\n**Gold:** +{gold_reward}",
+                value=rewards_text,
                 inline=True
             )
             
