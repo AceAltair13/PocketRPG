@@ -5,32 +5,14 @@ This is the foundation for all living entities in the RPG
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Any
-from enum import Enum
 import uuid
+from ..enums import EntityType, StatType
+from ..utils.serialization import SerializableMixin
+from ..utils.string_representation import StringRepresentationMixin
+from ..utils.stat_utils import StatUtils
 
 
-class EntityType(Enum):
-    """Types of entities in the game"""
-    PLAYER = "player"
-    ENEMY = "enemy"
-    NPC = "npc"
-    BOSS = "boss"
-
-
-class StatType(Enum):
-    """Core stat types for entities"""
-    HEALTH = "health"
-    MAX_HEALTH = "max_health"
-    MANA = "mana"
-    MAX_MANA = "max_mana"
-    ATTACK = "attack"
-    DEFENSE = "defense"
-    SPEED = "speed"
-    LEVEL = "level"
-    EXPERIENCE = "experience"
-
-
-class Entity(ABC):
+class Entity(ABC, SerializableMixin, StringRepresentationMixin):
     """
     Base class for all entities in the game.
     Provides core functionality for health, stats, and basic combat mechanics.
@@ -198,31 +180,40 @@ class Entity(ABC):
         """Get current health as a percentage"""
         current_health = self.get_stat(StatType.HEALTH)
         max_health = self.get_stat(StatType.MAX_HEALTH)
-        return (current_health / max_health) * 100 if max_health > 0 else 0
+        return StatUtils.calculate_percentage(current_health, max_health)
     
     def get_mana_percentage(self) -> float:
         """Get current mana as a percentage"""
         current_mana = self.get_stat(StatType.MANA)
         max_mana = self.get_stat(StatType.MAX_MANA)
-        return (current_mana / max_mana) * 100 if max_mana > 0 else 0
+        return StatUtils.calculate_percentage(current_mana, max_mana)
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert entity to dictionary for serialization"""
+    def _get_serialization_data(self) -> Dict[str, Any]:
+        """Get the data to be serialized"""
         return {
             'id': self.id,
             'name': self.name,
-            'entity_type': self.entity_type.value,
+            'entity_type': self._serialize_enum(self.entity_type),
             'level': self.level,
-            'stats': {stat.value: value for stat, value in self.stats.items()},
+            'stats': self._serialize_dict(self.stats),
             'is_alive': self.is_alive,
-            'status_effects': [effect.to_dict() for effect in self.status_effects]
+            'status_effects': self._serialize_list(self.status_effects)
         }
     
-    def __str__(self) -> str:
-        """String representation of the entity"""
+    def _get_basic_info(self) -> Dict[str, Any]:
+        """Get basic information for string representation"""
         health_pct = self.get_health_percentage()
-        return f"{self.name} (Lv.{self.level}) - HP: {self.get_stat(StatType.HEALTH)}/{self.get_stat(StatType.MAX_HEALTH)} ({health_pct:.1f}%)"
+        return {
+            'name': f"{self.name} (Lv.{self.level})",
+            'class': self.__class__.__name__,
+            'health': f"{self.get_stat(StatType.HEALTH)}/{self.get_stat(StatType.MAX_HEALTH)} ({health_pct:.1f}%)"
+        }
     
-    def __repr__(self) -> str:
-        """Detailed string representation"""
-        return f"Entity(name='{self.name}', type={self.entity_type.value}, level={self.level}, alive={self.is_alive})"
+    def _format_basic_string(self, info: Optional[Dict[str, Any]] = None) -> str:
+        """Format a basic string representation"""
+        if info is None:
+            info = self._get_basic_info()
+        
+        name = info.get('name', 'Unknown')
+        health = info.get('health', 'Unknown HP')
+        return f"{name} - HP: {health}"

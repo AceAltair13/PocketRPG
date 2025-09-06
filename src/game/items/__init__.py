@@ -4,16 +4,14 @@ Contains all item-related classes and systems
 """
 
 from .item import (
-    Item, ItemType, ItemRarity, ItemQuality,
-    ConsumableItem, EquipmentItem, WeaponItem, ArmorItem, QuestItem,
+    Item, ConsumableItem, EquipmentItem, WeaponItem, ArmorItem, QuestItem,
     CommonItems
 )
 from .inventory import Inventory
-from .equipment import Equipment, EquipmentSlot
+from .equipment import Equipment
 
 __all__ = [
-    'Item', 'ItemType', 'ItemRarity', 'ItemQuality',
-    'ConsumableItem', 'EquipmentItem', 'WeaponItem', 'ArmorItem', 'QuestItem',
+    'Item', 'ConsumableItem', 'EquipmentItem', 'WeaponItem', 'ArmorItem', 'QuestItem',
     'CommonItems',
-    'Inventory', 'Equipment', 'EquipmentSlot'
+    'Inventory', 'Equipment'
 ]

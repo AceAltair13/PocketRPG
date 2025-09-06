@@ -4,23 +4,9 @@ Handles equipment slots and stat calculations
 """
 
 from typing import Dict, List, Optional, Any
-from enum import Enum
 from .item import Item, ItemType, EquipmentItem
 from ..entities.entity import StatType
-
-
-class EquipmentSlot(Enum):
-    """Available equipment slots"""
-    WEAPON = "weapon"
-    HEAD = "head"
-    CHEST = "chest"
-    LEGS = "legs"
-    FEET = "feet"
-    HANDS = "hands"
-    RING_1 = "ring_1"
-    RING_2 = "ring_2"
-    NECKLACE = "necklace"
-    ACCESSORY = "accessory"
+from ..enums import EquipmentSlot
 
 
 class Equipment:

@@ -5,39 +5,13 @@ Includes consumables, equipment, and quest items
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
-from enum import Enum
+from ..enums import ItemType, ItemRarity, ItemQuality
+from ..utils.serialization import SerializableMixin
+from ..utils.string_representation import StringRepresentationMixin
+from ..utils.stat_utils import StatUtils
 
 
-class ItemType(Enum):
-    """Types of items"""
-    CONSUMABLE = "consumable"    # Potions, food, etc.
-    WEAPON = "weapon"           # Swords, staffs, etc.
-    ARMOR = "armor"             # Helmets, chest pieces, etc.
-    ACCESSORY = "accessory"     # Rings, amulets, etc.
-    QUEST = "quest"             # Quest-specific items
-    MATERIAL = "material"       # Crafting materials
-    MISC = "misc"               # Miscellaneous items
-
-
-class ItemRarity(Enum):
-    """Item rarity levels"""
-    COMMON = "common"
-    UNCOMMON = "uncommon"
-    RARE = "rare"
-    EPIC = "epic"
-    LEGENDARY = "legendary"
-
-
-class ItemQuality(Enum):
-    """Item quality levels"""
-    POOR = "poor"
-    NORMAL = "normal"
-    GOOD = "good"
-    EXCELLENT = "excellent"
-    PERFECT = "perfect"
-
-
-class Item(ABC):
+class Item(ABC, SerializableMixin, StringRepresentationMixin):
     """
     Base class for all items in the game.
     Provides common functionality for all item types.

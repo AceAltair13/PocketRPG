@@ -4,18 +4,10 @@ Inherits from Entity and adds player-specific functionality
 """
 
 from typing import Dict, List, Optional, Any
-from enum import Enum
 from .entity import Entity, EntityType, StatType
+from ..enums import PlayerClass
 from ..items.inventory import Inventory
 from ..items.equipment import Equipment
-
-
-class PlayerClass(Enum):
-    """Available player classes"""
-    WARRIOR = "warrior"
-    MAGE = "mage"
-    ROGUE = "rogue"
-    CLERIC = "cleric"
 
 
 class Player(Entity):

@@ -4,28 +4,11 @@ Handles combat flow, actions, and battle resolution
 """
 
 from typing import List, Dict, Any, Optional, Tuple
-from enum import Enum
 import random
 from ..entities.entity import Entity, StatType
 from ..entities.player import Player
 from ..entities.enemy import Enemy
-
-
-class CombatAction(Enum):
-    """Available combat actions"""
-    ATTACK = "attack"
-    DEFEND = "defend"
-    USE_ITEM = "use_item"
-    FLEE = "flee"
-    SPECIAL_ABILITY = "special_ability"
-
-
-class CombatResult(Enum):
-    """Possible combat results"""
-    VICTORY = "victory"
-    DEFEAT = "defeat"
-    FLEE = "flee"
-    ONGOING = "ongoing"
+from ..enums import CombatAction, CombatResult
 
 
 class CombatTurn:

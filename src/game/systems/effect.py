@@ -4,28 +4,13 @@ Handles temporary modifications to entity stats and behaviors
 """
 
 from typing import Dict, Any, Optional, Callable
-from enum import Enum
 from abc import ABC, abstractmethod
+from ..enums import EffectType, EffectTarget
+from ..utils.serialization import SerializableMixin
+from ..utils.string_representation import StringRepresentationMixin
 
 
-class EffectType(Enum):
-    """Types of effects"""
-    BUFF = "buff"           # Positive effect
-    DEBUFF = "debuff"       # Negative effect
-    DOT = "dot"            # Damage over time
-    HOT = "hot"            # Heal over time
-    STATUS = "status"      # Status condition (stun, poison, etc.)
-
-
-class EffectTarget(Enum):
-    """What the effect targets"""
-    SELF = "self"          # Affects the entity that has the effect
-    ENEMY = "enemy"        # Affects enemies
-    ALLY = "ally"          # Affects allies
-    ALL = "all"           # Affects everyone
-
-
-class Effect(ABC):
+class Effect(ABC, SerializableMixin, StringRepresentationMixin):
     """
     Base class for all status effects, buffs, and debuffs.
     Effects can modify stats, deal damage, heal, or change behavior.

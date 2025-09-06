@@ -3,18 +3,27 @@ Game logic and mechanics for PocketRPG
 """
 
 # Import main classes for easy access
-from .entities import Entity, Player, Enemy, EntityType, StatType, PlayerClass, EnemyType, EnemyBehavior
-from .items import Item, Inventory, Equipment, ItemType, ItemRarity, ItemQuality, CommonItems
-from .systems import Effect, Combat, EffectType, CombatAction, CombatResult, CommonEffects
+from .entities import Entity, Player, Enemy
+from .items import Item, Inventory, Equipment, CommonItems
+from .systems import Effect, Combat, CommonEffects
 from .examples import create_example_player, create_example_enemy, run_example_combat
+from .enums import (
+    EntityType, StatType, PlayerClass, EnemyType, EnemyBehavior,
+    ItemType, ItemRarity, ItemQuality, EquipmentSlot,
+    EffectType, EffectTarget, CombatAction, CombatResult
+)
 
 __all__ = [
     # Entities
-    'Entity', 'Player', 'Enemy', 'EntityType', 'StatType', 'PlayerClass', 'EnemyType', 'EnemyBehavior',
+    'Entity', 'Player', 'Enemy',
     # Items
-    'Item', 'Inventory', 'Equipment', 'ItemType', 'ItemRarity', 'ItemQuality', 'CommonItems',
+    'Item', 'Inventory', 'Equipment', 'CommonItems',
     # Systems
-    'Effect', 'Combat', 'EffectType', 'CombatAction', 'CombatResult', 'CommonEffects',
+    'Effect', 'Combat', 'CommonEffects',
     # Examples
-    'create_example_player', 'create_example_enemy', 'run_example_combat'
+    'create_example_player', 'create_example_enemy', 'run_example_combat',
+    # Enums
+    'EntityType', 'StatType', 'PlayerClass', 'EnemyType', 'EnemyBehavior',
+    'ItemType', 'ItemRarity', 'ItemQuality', 'EquipmentSlot',
+    'EffectType', 'EffectTarget', 'CombatAction', 'CombatResult'
 ]

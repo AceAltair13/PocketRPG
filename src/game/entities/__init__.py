@@ -3,12 +3,12 @@ Entities module for PocketRPG
 Contains all entity-related classes (Entity, Player, Enemy)
 """
 
-from .entity import Entity, EntityType, StatType
-from .player import Player, PlayerClass
-from .enemy import Enemy, EnemyType, EnemyBehavior
+from .entity import Entity
+from .player import Player
+from .enemy import Enemy
 
 __all__ = [
-    'Entity', 'EntityType', 'StatType',
-    'Player', 'PlayerClass',
-    'Enemy', 'EnemyType', 'EnemyBehavior'
+    'Entity',
+    'Player',
+    'Enemy'
 ]

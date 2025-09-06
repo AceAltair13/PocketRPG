@@ -4,25 +4,8 @@ Inherits from Entity and adds enemy-specific functionality
 """
 
 from typing import Dict, List, Optional, Any, Tuple
-from enum import Enum
 from .entity import Entity, EntityType, StatType
-
-
-class EnemyType(Enum):
-    """Types of enemies"""
-    NORMAL = "normal"
-    ELITE = "elite"
-    BOSS = "boss"
-    MINIBOSS = "miniboss"
-
-
-class EnemyBehavior(Enum):
-    """AI behavior patterns for enemies"""
-    AGGRESSIVE = "aggressive"  # Always attacks
-    DEFENSIVE = "defensive"    # Prefers to defend
-    BALANCED = "balanced"      # Mix of attack and defend
-    HEALER = "healer"         # Focuses on healing
-    SPELLCASTER = "spellcaster"  # Prefers magic attacks
+from ..enums import EnemyType, EnemyBehavior
 
 
 class Enemy(Entity):
