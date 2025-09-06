@@ -6,7 +6,7 @@ Game logic and mechanics for PocketRPG
 from .entities import Entity, Player, Enemy
 from .items import Item, Inventory, Equipment, CommonItems
 from .systems import Effect, Combat, CommonEffects
-from .examples import create_example_player, create_example_enemy, run_example_combat
+from .examples import demonstrate_player_creation, demonstrate_region_system, demonstrate_data_loading, demonstrate_integration
 from .enums import (
     EntityType, StatType, PlayerClass, EnemyType, EnemyBehavior,
     ItemType, ItemRarity, ItemQuality, EquipmentSlot,
@@ -24,7 +24,7 @@ __all__ = [
     # Systems
     'Effect', 'Combat', 'CommonEffects',
     # Examples
-    'create_example_player', 'create_example_enemy', 'run_example_combat',
+    'demonstrate_player_creation', 'demonstrate_region_system', 'demonstrate_data_loading', 'demonstrate_integration',
     # Enums
     'EntityType', 'StatType', 'PlayerClass', 'EnemyType', 'EnemyBehavior',
     'ItemType', 'ItemRarity', 'ItemQuality', 'EquipmentSlot',

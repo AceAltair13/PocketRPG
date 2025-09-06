@@ -207,13 +207,8 @@ class Player(Entity):
     
     def get_class_description(self) -> str:
         """Get description of the player's class"""
-        descriptions = {
-            PlayerClass.WARRIOR: "A strong melee fighter with high health and attack power.",
-            PlayerClass.MAGE: "A spellcaster with powerful magic but lower physical stats.",
-            PlayerClass.ROGUE: "A nimble fighter with high speed and critical hit potential.",
-            PlayerClass.CLERIC: "A support class with healing abilities and balanced stats."
-        }
-        return descriptions.get(self.player_class, "Unknown class")
+        from ..player_creation import PlayerCreation
+        return PlayerCreation.get_class_description(self.player_class)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert player to dictionary for serialization"""
