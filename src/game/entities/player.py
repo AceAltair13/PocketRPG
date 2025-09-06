@@ -33,6 +33,9 @@ class Player(Entity):
         self.available_skills: List[str] = []
         self.learned_skills: List[str] = []
         
+        # Current location
+        self.current_region: str = "grasslands"
+        
         # Initialize class-specific stats
         self._initialize_class_stats()
     

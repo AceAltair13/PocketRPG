@@ -13,14 +13,15 @@ class Region:
     Represents a game region with its properties and content.
     """
     
-    def __init__(self, region_id: str):
+    def __init__(self, region_id: str, data_loader_instance=None):
         self.region_id: str = region_id
         self.data: Optional[Dict[str, Any]] = None
+        self.data_loader = data_loader_instance or data_loader
         self._load_data()
     
     def _load_data(self) -> None:
         """Load region data from JSON file"""
-        self.data = data_loader.load_region(self.region_id)
+        self.data = self.data_loader.load_region(self.region_id)
         if not self.data:
             raise ValueError(f"Region {self.region_id} not found")
     
@@ -118,8 +119,9 @@ class RegionManager:
     Manages regions and player travel between them.
     """
     
-    def __init__(self):
+    def __init__(self, data_loader_instance=None):
         self.current_region: Optional[Region] = None
+        self.data_loader = data_loader_instance or data_loader
     
     def set_current_region(self, region_id: str) -> bool:
         """
@@ -132,7 +134,7 @@ class RegionManager:
             True if successful, False otherwise
         """
         try:
-            self.current_region = Region(region_id)
+            self.current_region = Region(region_id, self.data_loader)
             return True
         except ValueError:
             return False
@@ -143,7 +145,7 @@ class RegionManager:
     
     def get_available_regions(self) -> List[str]:
         """Get list of all available regions"""
-        return data_loader.list_regions()
+        return self.data_loader.list_regions()
     
     def can_travel_to(self, player, target_region_id: str) -> tuple[bool, str]:
         """
@@ -157,7 +159,7 @@ class RegionManager:
             Tuple of (can_travel, reason)
         """
         try:
-            target_region = Region(target_region_id)
+            target_region = Region(target_region_id, self.data_loader)
         except ValueError:
             return False, "Region not found"
         
@@ -197,7 +199,7 @@ class RegionManager:
             return False, reason
         
         try:
-            target_region = Region(target_region_id)
+            target_region = Region(target_region_id, self.data_loader)
         except ValueError:
             return False, "Region not found"
         
