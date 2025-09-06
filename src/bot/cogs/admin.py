@@ -14,6 +14,16 @@ class AdminCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
+    @app_commands.command(name="ping", description="Test bot connectivity")
+    async def ping(self, interaction: discord.Interaction):
+        """Simple ping command for testing"""
+        embed = discord.Embed(
+            title="🏓 Pong!",
+            description=f"Bot latency: {round(self.bot.latency * 1000)}ms",
+            color=discord.Color.green()
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+    
     @app_commands.command(name="admin_stats", description="View bot statistics (Admin only)")
     async def admin_stats(self, interaction: discord.Interaction):
         """View bot statistics"""
@@ -172,6 +182,42 @@ class AdminCog(commands.Cog):
         except Exception as e:
             await interaction.response.send_message(
                 f"❌ Error syncing commands: {str(e)}",
+                ephemeral=True
+            )
+    
+    @app_commands.command(name="admin_clear_commands", description="Clear all slash commands (Admin only)")
+    async def admin_clear_commands(self, interaction: discord.Interaction):
+        """Clear all slash commands"""
+        # Check if user is admin
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message(
+                "❌ You don't have permission to use this command!",
+                ephemeral=True
+            )
+            return
+        
+        try:
+            # Clear all commands
+            self.bot.tree.clear_commands(guild=None)
+            for guild in self.bot.guilds:
+                self.bot.tree.clear_commands(guild=guild)
+            
+            # Sync to apply the clearing
+            await self.bot.tree.sync()
+            
+            embed = discord.Embed(
+                title="🧹 Commands Cleared",
+                description="All slash commands have been cleared and synced!",
+                color=discord.Color.orange()
+            )
+            
+            embed.set_footer(text="Restart the bot to reload commands.")
+            
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            
+        except Exception as e:
+            await interaction.response.send_message(
+                f"❌ Error clearing commands: {str(e)}",
                 ephemeral=True
             )
 

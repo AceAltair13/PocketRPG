@@ -47,8 +47,17 @@ class PocketRPG(commands.Bot):
         # Load all cogs (command modules)
         await self.load_cogs()
         
-        # Sync slash commands to all guilds
+        # Clear and sync slash commands to all guilds
         try:
+            # First, clear all commands to remove any cached/old commands
+            self.tree.clear_commands(guild=None)
+            self.logger.info("Cleared all global commands")
+            
+            # Clear commands for each guild
+            for guild in self.guilds:
+                self.tree.clear_commands(guild=guild)
+                self.logger.info(f"Cleared commands for guild: {guild.name}")
+            
             # Sync to all guilds the bot is in
             synced = await self.tree.sync()
             self.logger.info(f"Synced {len(synced)} slash commands globally")
