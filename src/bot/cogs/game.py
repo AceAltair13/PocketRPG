@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from ...game import data_loader, RegionManager
-from ...game.enums import PlayerClass
+from ...game.enums import PlayerClass, StatType
 
 
 class GameCog(commands.Cog):
@@ -95,7 +95,13 @@ class GameCog(commands.Cog):
     
     @app_commands.command(name="activity", description="Perform an activity in your current region")
     @app_commands.describe(activity="The activity you want to perform")
-    async def activity(self, interaction: discord.Interaction, activity: str):
+    @app_commands.choices(activity=[
+        app_commands.Choice(name="Scout", value="scout"),
+        app_commands.Choice(name="Foraging", value="foraging"),
+        app_commands.Choice(name="Farming", value="farming"),
+        app_commands.Choice(name="Mining", value="mining")
+    ])
+    async def activity(self, interaction: discord.Interaction, activity: app_commands.Choice[str]):
         """Perform an activity"""
         user_id = interaction.user.id
         player = self.bot.get_player(user_id)
@@ -119,17 +125,18 @@ class GameCog(commands.Cog):
         
         # Check if activity is available
         available_activities = current_region.available_activities
-        if activity.lower() not in available_activities:
+        activity_name = activity.value
+        if activity_name.lower() not in available_activities:
             await interaction.response.send_message(
-                f"❌ **{activity.title()}** is not available in {current_region.name}.\n\nAvailable activities: {', '.join([a.title() for a in available_activities])}",
+                f"❌ **{activity_name.title()}** is not available in {current_region.name}.\n\nAvailable activities: {', '.join([a.title() for a in available_activities])}",
             )
             return
         
         # Load activity data
-        activity_data = data_loader.load_activity(activity.lower())
+        activity_data = data_loader.load_activity(activity_name.lower())
         if not activity_data:
             await interaction.response.send_message(
-                f"❌ Activity data not found for **{activity.title()}**.",
+                f"❌ Activity data not found for **{activity_name.title()}**.",
             )
             return
         
@@ -137,13 +144,13 @@ class GameCog(commands.Cog):
         energy_cost = activity_data.get('energy_cost', 0)
         if player.get_stat(player.stats[StatType.MANA]) < energy_cost:  # Using mana as energy for now
             await interaction.response.send_message(
-                f"❌ Not enough energy! You need {energy_cost} energy to perform **{activity.title()}**.",
+                f"❌ Not enough energy! You need {energy_cost} energy to perform **{activity_name.title()}**.",
             )
             return
         
         # Perform activity (simplified for now)
         await interaction.response.send_message(
-            f"🎯 **{player.name}** is performing **{activity.title()}**...",
+            f"🎯 **{player.name}** is performing **{activity_name.title()}**...",
         )
         
         # Simulate activity duration
@@ -159,7 +166,7 @@ class GameCog(commands.Cog):
         
         # Create results embed
         embed = discord.Embed(
-            title=f"✅ {activity.title()} Complete!",
+            title=f"✅ {activity_name.title()} Complete!",
             description=f"**{player.name}** has finished {activity_data['description'].lower()}",
             color=discord.Color.green()
         )
