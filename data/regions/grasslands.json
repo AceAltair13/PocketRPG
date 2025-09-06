@@ -11,6 +11,7 @@
   "loot_multiplier": 1.0,
   "enemy_level_bonus": 0,
   "available_activities": ["combat", "foraging", "farming"],
+  "enemies": ["grassland_wolf", "grassland_boar", "grassland_alpha_wolf"],
   "travel_cost": {
     "gold": 0,
     "items": []

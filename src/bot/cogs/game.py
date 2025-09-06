@@ -194,9 +194,20 @@ class GameCog(commands.Cog):
     @app_commands.command(name="regions", description="View available regions")
     async def regions(self, interaction: discord.Interaction):
         """View available regions"""
-        regions = data_loader.list_regions()
+        user_id = interaction.user.id
+        player = self.bot.get_player(user_id)
         
-        if not regions:
+        if not player:
+            await interaction.response.send_message(
+                "❌ You don't have a character yet! Use `/create_character` to create one.",
+                ephemeral=True
+            )
+            return
+        
+        # Get accessible regions
+        accessible_regions = self.bot.region_manager.get_accessible_regions(player)
+        
+        if not accessible_regions:
             await interaction.response.send_message(
                 "❌ No regions available.",
                 ephemeral=True
@@ -209,14 +220,19 @@ class GameCog(commands.Cog):
             color=discord.Color.blue()
         )
         
-        for region_id in regions:
-            region_data = data_loader.load_region(region_id)
-            if region_data:
-                embed.add_field(
-                    name=f"🌱 {region_data['name']}",
-                    value=f"**Level:** {region_data['level']}\n**Activities:** {', '.join(region_data.get('available_activities', []))}",
-                    inline=True
-                )
+        for region in accessible_regions:
+            if region["accessible"]:
+                if region["current"]:
+                    name = f"📍 {region['name']} (Current)"
+                    value = f"**Level:** {region['level']}\n**Status:** ✅ Accessible"
+                else:
+                    name = f"🌱 {region['name']}"
+                    value = f"**Level:** {region['level']}\n**Status:** ✅ Accessible"
+            else:
+                name = f"🔒 {region['name']}"
+                value = f"**Level:** {region['level']}\n**Status:** ❌ {region['reason']}"
+            
+            embed.add_field(name=name, value=value, inline=True)
         
         embed.set_footer(text="Use /explore to explore your current region!")
         

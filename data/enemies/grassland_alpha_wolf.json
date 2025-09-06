@@ -1,0 +1,36 @@
+{
+  "id": "grassland_alpha_wolf",
+  "name": "Alpha Wolf",
+  "description": "The leader of the grassland wolf pack. Stronger and more cunning than regular wolves.",
+  "type": "mini_boss",
+  "behavior": "aggressive",
+  "base_level": 3,
+  "base_stats": {
+    "health": 60,
+    "mana": 20,
+    "attack": 18,
+    "defense": 6,
+    "speed": 15
+  },
+  "experience_reward": 50,
+  "gold_reward": 20,
+  "loot_table": [
+    {
+      "item": "alpha_wolf_pelt",
+      "drop_chance": 0.6,
+      "quantity": [1, 1]
+    },
+    {
+      "item": "alpha_wolf_fang",
+      "drop_chance": 0.4,
+      "quantity": [1, 1]
+    },
+    {
+      "item": "wolf_leader_crown",
+      "drop_chance": 0.1,
+      "quantity": [1, 1]
+    }
+  ],
+  "ai_abilities": ["pack_leader", "intimidating_howl"],
+  "spawn_regions": ["grasslands"]
+}

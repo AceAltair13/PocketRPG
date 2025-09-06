@@ -1,0 +1,21 @@
+{
+  "id": "forest_clearing",
+  "name": "Forest Clearing",
+  "description": "A mysterious clearing deep in the forest. Darker creatures lurk here.",
+  "level": 1,
+  "unlock_requirements": {
+    "level": 3,
+    "items": ["forest_key"],
+    "quests": ["defeat_alpha_wolf"]
+  },
+  "loot_multiplier": 1.5,
+  "enemy_level_bonus": 1,
+  "available_activities": ["combat", "foraging", "mining"],
+  "enemies": ["forest_spider", "forest_bear", "forest_guardian"],
+  "travel_cost": {
+    "gold": 10,
+    "items": ["forest_key"]
+  },
+  "neighboring_regions": ["grasslands", "mountain_pass"],
+  "environmental_effects": ["dark_aura"]
+}

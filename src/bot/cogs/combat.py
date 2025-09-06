@@ -32,8 +32,8 @@ class EnemySelectionView(discord.ui.View):
             )
             return
         
-        # Get available enemies
-        available_enemies = current_region.get_available_enemies()
+        # Get available enemies with discovery status
+        available_enemies = current_region.get_enemies_with_discovery(self.player)
         
         if not available_enemies:
             await interaction.response.send_message(
@@ -43,15 +43,30 @@ class EnemySelectionView(discord.ui.View):
             return
         
         # Create buttons for each enemy
-        for enemy_id in available_enemies:
-            enemy_data = data_loader.load_enemy(enemy_id)
-            if enemy_data:
+        for enemy in available_enemies:
+            if enemy["discovered"]:
+                # Show enemy type with emoji
+                type_emoji = {
+                    "normal": "👹",
+                    "mini_boss": "🔥",
+                    "boss": "👑"
+                }.get(enemy["type"], "👹")
+                
                 button = discord.ui.Button(
-                    label=f"{enemy_data['name']} (Lv.{enemy_data['base_level']})",
+                    label=f"{enemy['name']} (Lv.{enemy['level']})",
                     style=discord.ButtonStyle.danger,
-                    emoji="👹"
+                    emoji=type_emoji
                 )
-                button.callback = lambda i, eid=enemy_id: self.start_combat(i, eid)
+                button.callback = lambda i, eid=enemy["id"]: self.start_combat(i, eid)
+                self.add_item(button)
+            else:
+                # Show unknown enemy
+                button = discord.ui.Button(
+                    label="Unknown Enemy",
+                    style=discord.ButtonStyle.secondary,
+                    emoji="❓"
+                )
+                button.callback = lambda i, eid=enemy["id"]: self.start_combat(i, eid)
                 self.add_item(button)
         
         # Add cancel button
@@ -84,12 +99,25 @@ class EnemySelectionView(discord.ui.View):
         
         # Create enemy instance
         from ...game.entities.enemy import Enemy, EnemyType, EnemyBehavior
+        
+        # Map enemy type from data to enum
+        enemy_type_map = {
+            "normal": EnemyType.NORMAL,
+            "mini_boss": EnemyType.MINI_BOSS,
+            "boss": EnemyType.BOSS
+        }
+        
+        enemy_type = enemy_type_map.get(enemy_data.get('type', 'normal'), EnemyType.NORMAL)
+        
         enemy_instance = Enemy(
             name=enemy_data['name'],
-            enemy_type=EnemyType.NORMAL,
+            enemy_type=enemy_type,
             level=enemy_data['base_level'],
             behavior=EnemyBehavior.AGGRESSIVE
         )
+        
+        # Discover the enemy
+        self.player.discover_enemy(enemy_id)
         
         # Start combat
         combat = Combat([self.player, enemy_instance])

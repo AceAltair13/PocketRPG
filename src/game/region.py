@@ -105,6 +105,29 @@ class Region:
         """Get list of enemies that can spawn in this region"""
         return data_loader.get_enemies_for_region(self.region_id)
     
+    def get_enemies_with_discovery(self, player) -> List[Dict[str, Any]]:
+        """Get enemies with discovery status for a player"""
+        enemies = []
+        region_data = data_loader.load_region(self.region_id)
+        if not region_data:
+            return enemies
+        
+        enemy_ids = region_data.get("enemies", [])
+        for enemy_id in enemy_ids:
+            enemy_data = data_loader.load_enemy(enemy_id)
+            if enemy_data:
+                discovered = player.has_discovered_enemy(enemy_id)
+                enemies.append({
+                    "id": enemy_id,
+                    "name": enemy_data["name"] if discovered else "Unknown Enemy",
+                    "type": enemy_data["type"],
+                    "level": enemy_data["base_level"],
+                    "discovered": discovered,
+                    "data": enemy_data if discovered else None
+                })
+        
+        return enemies
+    
     def get_environmental_effects(self) -> List[str]:
         """Get environmental effects in this region"""
         return self.data.get("environmental_effects", [])
@@ -146,6 +169,26 @@ class RegionManager:
     def get_available_regions(self) -> List[str]:
         """Get list of all available regions"""
         return self.data_loader.list_regions()
+    
+    def get_accessible_regions(self, player) -> List[Dict[str, Any]]:
+        """Get regions accessible to a player with their status"""
+        regions = []
+        all_regions = self.data_loader.list_regions()
+        
+        for region_id in all_regions:
+            region = Region(region_id, self.data_loader)
+            can_access, reason = region.can_player_access(player)
+            
+            regions.append({
+                "id": region_id,
+                "name": region.name,
+                "level": region.level,
+                "accessible": can_access,
+                "reason": reason if not can_access else "",
+                "current": region_id == player.current_region
+            })
+        
+        return regions
     
     def can_travel_to(self, player, target_region_id: str) -> tuple[bool, str]:
         """

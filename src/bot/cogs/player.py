@@ -189,14 +189,22 @@ class CharacterActionView(discord.ui.View):
                 inline=True
             )
         
-        # Available enemies
-        enemies = current_region.get_available_enemies()
+        # Available enemies with discovery status
+        enemies = current_region.get_enemies_with_discovery(self.player)
         if enemies:
             enemy_data = []
-            for enemy_id in enemies:
-                enemy = self.bot.region_manager.data_loader.load_enemy(enemy_id)
-                if enemy:
-                    enemy_data.append(f"• {enemy['name']} (Level {enemy['base_level']})")
+            for enemy in enemies:
+                if enemy["discovered"]:
+                    # Show enemy type with emoji
+                    type_emoji = {
+                        "normal": "👹",
+                        "mini_boss": "🔥",
+                        "boss": "👑"
+                    }.get(enemy["type"], "👹")
+                    
+                    enemy_data.append(f"{type_emoji} {enemy['name']} (Level {enemy['level']})")
+                else:
+                    enemy_data.append(f"❓ Unknown Enemy")
             
             if enemy_data:
                 embed.add_field(
@@ -210,7 +218,7 @@ class CharacterActionView(discord.ui.View):
         
         embed.set_footer(text="Choose an activity to get started!")
         
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.response.send_message(embed=embed, view=view)
     
     def create_character_embed(self):
         """Create character information embed"""

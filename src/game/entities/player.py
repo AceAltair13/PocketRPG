@@ -3,7 +3,7 @@ Player class for user-controlled characters in the RPG
 Inherits from Entity and adds player-specific functionality
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Set
 from .entity import Entity, EntityType, StatType
 from ..enums import PlayerClass
 from ..items.inventory import Inventory
@@ -35,6 +35,9 @@ class Player(Entity):
         
         # Current location
         self.current_region: str = "grasslands"
+        
+        # Enemy discovery system
+        self.discovered_enemies: Set[str] = set()
         
         # Initialize class-specific stats
         self._initialize_class_stats()
@@ -209,6 +212,18 @@ class Player(Entity):
         """Get description of the player's class"""
         from ..player_creation import PlayerCreation
         return PlayerCreation.get_class_description(self.player_class)
+    
+    def discover_enemy(self, enemy_id: str) -> None:
+        """Mark an enemy as discovered"""
+        self.discovered_enemies.add(enemy_id)
+    
+    def has_discovered_enemy(self, enemy_id: str) -> bool:
+        """Check if player has discovered an enemy"""
+        return enemy_id in self.discovered_enemies
+    
+    def get_discovered_enemies(self) -> Set[str]:
+        """Get set of discovered enemy IDs"""
+        return self.discovered_enemies.copy()
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert player to dictionary for serialization"""
