@@ -25,7 +25,6 @@ class GameCog(commands.Cog):
         if not player:
             await interaction.response.send_message(
                 "❌ You don't have a character yet! Use `/create_character` to create one.",
-                ephemeral=True
             )
             return
         
@@ -37,7 +36,6 @@ class GameCog(commands.Cog):
         if not current_region:
             await interaction.response.send_message(
                 "❌ Error loading region data. Please try again later.",
-                ephemeral=True
             )
             return
         
@@ -105,7 +103,6 @@ class GameCog(commands.Cog):
         if not player:
             await interaction.response.send_message(
                 "❌ You don't have a character yet! Use `/create_character` to create one.",
-                ephemeral=True
             )
             return
         
@@ -117,7 +114,6 @@ class GameCog(commands.Cog):
         if not current_region:
             await interaction.response.send_message(
                 "❌ Error loading region data. Please try again later.",
-                ephemeral=True
             )
             return
         
@@ -126,7 +122,6 @@ class GameCog(commands.Cog):
         if activity.lower() not in available_activities:
             await interaction.response.send_message(
                 f"❌ **{activity.title()}** is not available in {current_region.name}.\n\nAvailable activities: {', '.join([a.title() for a in available_activities])}",
-                ephemeral=True
             )
             return
         
@@ -135,7 +130,6 @@ class GameCog(commands.Cog):
         if not activity_data:
             await interaction.response.send_message(
                 f"❌ Activity data not found for **{activity.title()}**.",
-                ephemeral=True
             )
             return
         
@@ -144,14 +138,12 @@ class GameCog(commands.Cog):
         if player.get_stat(player.stats[StatType.MANA]) < energy_cost:  # Using mana as energy for now
             await interaction.response.send_message(
                 f"❌ Not enough energy! You need {energy_cost} energy to perform **{activity.title()}**.",
-                ephemeral=True
             )
             return
         
         # Perform activity (simplified for now)
         await interaction.response.send_message(
             f"🎯 **{player.name}** is performing **{activity.title()}**...",
-            ephemeral=True
         )
         
         # Simulate activity duration
@@ -189,7 +181,7 @@ class GameCog(commands.Cog):
         embed.set_footer(text="Use /character to view your updated stats!")
         
         # Send follow-up message
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, )
     
     @app_commands.command(name="regions", description="View available regions")
     async def regions(self, interaction: discord.Interaction):
@@ -200,7 +192,6 @@ class GameCog(commands.Cog):
         if not player:
             await interaction.response.send_message(
                 "❌ You don't have a character yet! Use `/create_character` to create one.",
-                ephemeral=True
             )
             return
         
@@ -210,7 +201,6 @@ class GameCog(commands.Cog):
         if not accessible_regions:
             await interaction.response.send_message(
                 "❌ No regions available.",
-                ephemeral=True
             )
             return
         

@@ -55,6 +55,11 @@ class Region:
         """Get list of available activities in this region"""
         return self.data.get("available_activities", [])
     
+    def get_unlocked_activities(self, player) -> List[str]:
+        """Get list of activities available to the player in this region"""
+        region_activities = self.data.get("available_activities", [])
+        return [activity for activity in region_activities if player.has_activity_unlocked(activity)]
+    
     @property
     def neighboring_regions(self) -> List[str]:
         """Get list of neighboring regions"""

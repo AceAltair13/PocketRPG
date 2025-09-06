@@ -39,6 +39,9 @@ class Player(Entity):
         # Enemy discovery system
         self.discovered_enemies: Set[str] = set()
         
+        # Activity unlock system
+        self.unlocked_activities: Set[str] = {"scout", "foraging"}  # Start with basic activities
+        
         # Initialize class-specific stats
         self._initialize_class_stats()
     
@@ -224,6 +227,18 @@ class Player(Entity):
     def get_discovered_enemies(self) -> Set[str]:
         """Get set of discovered enemy IDs"""
         return self.discovered_enemies.copy()
+    
+    def unlock_activity(self, activity: str) -> None:
+        """Unlock a new activity"""
+        self.unlocked_activities.add(activity)
+    
+    def has_activity_unlocked(self, activity: str) -> bool:
+        """Check if player has unlocked an activity"""
+        return activity in self.unlocked_activities
+    
+    def get_unlocked_activities(self) -> Set[str]:
+        """Get set of unlocked activities"""
+        return self.unlocked_activities.copy()
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert player to dictionary for serialization"""

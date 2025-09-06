@@ -22,7 +22,7 @@ class AdminCog(commands.Cog):
             description=f"Bot latency: {round(self.bot.latency * 1000)}ms",
             color=discord.Color.green()
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, )
     
     @app_commands.command(name="admin_stats", description="View bot statistics (Admin only)")
     async def admin_stats(self, interaction: discord.Interaction):
@@ -31,7 +31,6 @@ class AdminCog(commands.Cog):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command!",
-                ephemeral=True
             )
             return
         
@@ -65,7 +64,7 @@ class AdminCog(commands.Cog):
         
         embed.set_footer(text=f"Bot Uptime: {self.bot.uptime if hasattr(self.bot, 'uptime') else 'Unknown'}")
         
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, )
     
     @app_commands.command(name="admin_reload", description="Reload game data (Admin only)")
     async def admin_reload(self, interaction: discord.Interaction):
@@ -74,7 +73,6 @@ class AdminCog(commands.Cog):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command!",
-                ephemeral=True
             )
             return
         
@@ -94,12 +92,11 @@ class AdminCog(commands.Cog):
                 inline=False
             )
             
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, )
             
         except Exception as e:
             await interaction.response.send_message(
                 f"❌ Error reloading data: {str(e)}",
-                ephemeral=True
             )
     
     @app_commands.command(name="admin_clear_combats", description="Clear all active combats (Admin only)")
@@ -109,7 +106,6 @@ class AdminCog(commands.Cog):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command!",
-                ephemeral=True
             )
             return
         
@@ -123,7 +119,7 @@ class AdminCog(commands.Cog):
             color=discord.Color.orange()
         )
         
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, )
     
     @app_commands.command(name="admin_clear_players", description="Clear all active players (Admin only)")
     async def admin_clear_players(self, interaction: discord.Interaction):
@@ -132,7 +128,6 @@ class AdminCog(commands.Cog):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command!",
-                ephemeral=True
             )
             return
         
@@ -146,7 +141,7 @@ class AdminCog(commands.Cog):
             color=discord.Color.orange()
         )
         
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, )
     
     @app_commands.command(name="admin_sync_commands", description="Manually sync slash commands (Admin only)")
     async def admin_sync_commands(self, interaction: discord.Interaction):
@@ -155,7 +150,6 @@ class AdminCog(commands.Cog):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command!",
-                ephemeral=True
             )
             return
         
@@ -177,12 +171,11 @@ class AdminCog(commands.Cog):
             
             embed.set_footer(text="Commands should now be available in this server!")
             
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, )
             
         except Exception as e:
             await interaction.response.send_message(
                 f"❌ Error syncing commands: {str(e)}",
-                ephemeral=True
             )
     
     @app_commands.command(name="admin_clear_commands", description="Clear all slash commands (Admin only)")
@@ -192,7 +185,6 @@ class AdminCog(commands.Cog):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
                 "❌ You don't have permission to use this command!",
-                ephemeral=True
             )
             return
         
@@ -213,12 +205,11 @@ class AdminCog(commands.Cog):
             
             embed.set_footer(text="Restart the bot to reload commands.")
             
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, )
             
         except Exception as e:
             await interaction.response.send_message(
                 f"❌ Error clearing commands: {str(e)}",
-                ephemeral=True
             )
 
 

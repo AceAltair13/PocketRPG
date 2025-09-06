@@ -34,7 +34,6 @@ class CharacterCreationModal(discord.ui.Modal):
         if self.bot.get_player(user_id):
             await interaction.response.send_message(
                 "❌ You already have a character! Use `/character` to view your stats.",
-                ephemeral=True
             )
             return
         
@@ -44,7 +43,6 @@ class CharacterCreationModal(discord.ui.Modal):
         if not is_valid:
             await interaction.response.send_message(
                 f"❌ Invalid character name: {error}",
-                ephemeral=True
             )
             return
         
@@ -67,7 +65,7 @@ class CharacterCreationModal(discord.ui.Modal):
                 inline=False
             )
         
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.response.send_message(embed=embed, view=view, )
 
 
 class ClassSelectionView(discord.ui.View):
@@ -139,7 +137,6 @@ class ClassSelectionView(discord.ui.View):
         except Exception as e:
             await interaction.response.send_message(
                 f"❌ Error creating character: {str(e)}",
-                ephemeral=True
             )
 
 
@@ -155,7 +152,7 @@ class CharacterActionView(discord.ui.View):
     async def view_character(self, interaction: discord.Interaction, button: discord.ui.Button):
         """View character details"""
         embed = self.create_character_embed()
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, )
     
     @discord.ui.button(label="Explore", style=discord.ButtonStyle.success, emoji="🗺️")
     async def explore(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -168,7 +165,6 @@ class CharacterActionView(discord.ui.View):
         if not current_region:
             await interaction.response.send_message(
                 "❌ Error loading region data. Please try again later.",
-                ephemeral=True
             )
             return
         
@@ -179,13 +175,24 @@ class CharacterActionView(discord.ui.View):
             color=discord.Color.green()
         )
         
-        # Available activities
-        activities = current_region.available_activities
-        if activities:
-            activity_text = "\n".join([f"• {activity.title()}" for activity in activities])
+        # Available activities (only unlocked ones)
+        unlocked_activities = current_region.get_unlocked_activities(self.player)
+        if unlocked_activities:
+            activity_text = "\n".join([f"• {activity.title()}" for activity in unlocked_activities])
             embed.add_field(
                 name="🎯 Available Activities",
                 value=activity_text,
+                inline=True
+            )
+        
+        # Show locked activities with unlock hints
+        all_activities = current_region.available_activities
+        locked_activities = [activity for activity in all_activities if not self.player.has_activity_unlocked(activity)]
+        if locked_activities:
+            locked_text = "\n".join([f"🔒 {activity.title()} (Coming Soon)" for activity in locked_activities])
+            embed.add_field(
+                name="🔒 Locked Activities",
+                value=locked_text,
                 inline=True
             )
         
@@ -262,22 +269,41 @@ class ActivitySelectionView(discord.ui.View):
         super().__init__(timeout=60)
         self.player = player
         self.bot = bot
+        
+        # Add buttons dynamically based on unlocked activities
+        self._add_activity_buttons()
     
-    @discord.ui.button(label="Scout", style=discord.ButtonStyle.danger, emoji="🔍")
-    async def scout_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.start_activity(interaction, "scout")
-    
-    @discord.ui.button(label="Foraging", style=discord.ButtonStyle.success, emoji="🌿")
-    async def foraging_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.start_activity(interaction, "foraging")
-    
-    @discord.ui.button(label="Farming", style=discord.ButtonStyle.success, emoji="🌾")
-    async def farming_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.start_activity(interaction, "farming")
-    
-    @discord.ui.button(label="Mining", style=discord.ButtonStyle.secondary, emoji="⛏️")
-    async def mining_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.start_activity(interaction, "mining")
+    def _add_activity_buttons(self):
+        """Add buttons for unlocked activities"""
+        # Get current region and unlocked activities
+        region_manager = self.bot.region_manager
+        region_manager.set_current_region(self.player.current_region)
+        current_region = region_manager.get_current_region()
+        
+        if not current_region:
+            return
+        
+        unlocked_activities = current_region.get_unlocked_activities(self.player)
+        
+        # Activity button configurations
+        activity_configs = {
+            "scout": {"label": "Scout", "style": discord.ButtonStyle.danger, "emoji": "🔍"},
+            "foraging": {"label": "Foraging", "style": discord.ButtonStyle.success, "emoji": "🌿"},
+            "farming": {"label": "Farming", "style": discord.ButtonStyle.success, "emoji": "🌾"},
+            "mining": {"label": "Mining", "style": discord.ButtonStyle.secondary, "emoji": "⛏️"}
+        }
+        
+        # Add buttons for unlocked activities
+        for activity in unlocked_activities:
+            if activity in activity_configs:
+                config = activity_configs[activity]
+                button = discord.ui.Button(
+                    label=config["label"],
+                    style=config["style"],
+                    emoji=config["emoji"]
+                )
+                button.callback = lambda i, act=activity: self.start_activity(i, act)
+                self.add_item(button)
     
     async def start_activity(self, interaction: discord.Interaction, activity: str):
         """Start the selected activity"""
@@ -289,16 +315,39 @@ class ActivitySelectionView(discord.ui.View):
         if not current_region:
             await interaction.response.send_message(
                 "❌ Error loading region data. Please try again later.",
-                ephemeral=True
             )
             return
         
-        # Check if activity is available
+        # Check if activity is unlocked
+        if not self.player.has_activity_unlocked(activity.lower()):
+            # Show placeholder message for locked activities
+            placeholder_messages = {
+                "farming": "🌾 **Farming** will be coming soon! This will be a minigame where you can grow crops and harvest resources.",
+                "mining": "⛏️ **Mining** will be coming soon! This will be a minigame where you can extract valuable minerals and ores."
+            }
+            
+            message = placeholder_messages.get(activity.lower(), f"🔒 **{activity.title()}** is not yet available.")
+            
+            embed = discord.Embed(
+                title="🚧 Coming Soon!",
+                description=message,
+                color=discord.Color.orange()
+            )
+            
+            embed.add_field(
+                name="💡 Tip",
+                value="Try foraging to gather materials that might unlock new activities!",
+                inline=False
+            )
+            
+            await interaction.response.send_message(embed=embed)
+            return
+        
+        # Check if activity is available in region
         available_activities = current_region.available_activities
         if activity.lower() not in available_activities:
             await interaction.response.send_message(
-                f"❌ **{activity.title()}** is not available in {current_region.name}.",
-                ephemeral=True
+                f"❌ **{activity.title()}** is not available in {current_region.name}."
             )
             return
         
@@ -307,7 +356,6 @@ class ActivitySelectionView(discord.ui.View):
         if not activity_data:
             await interaction.response.send_message(
                 f"❌ Activity data not found for **{activity.title()}**.",
-                ephemeral=True
             )
             return
         
@@ -316,14 +364,12 @@ class ActivitySelectionView(discord.ui.View):
         if self.player.get_stat(StatType.MANA) < energy_cost:  # Using mana as energy for now
             await interaction.response.send_message(
                 f"❌ Not enough energy! You need {energy_cost} energy to perform **{activity.title()}**.",
-                ephemeral=True
             )
             return
         
         # Perform activity
         await interaction.response.send_message(
             f"🎯 **{self.player.name}** is performing **{activity.title()}**...",
-            ephemeral=True
         )
         
         # Simulate activity duration
@@ -410,22 +456,42 @@ class ActivitySelectionView(discord.ui.View):
                     inline=True
                 )
         else:
-            # Regular activity
-            experience_reward = activity_data.get('experience_reward', 0)
-            self.player.add_experience(experience_reward)
-            
-            # Create results embed
-            embed = discord.Embed(
-                title=f"✅ {activity.title()} Complete!",
-                description=f"**{self.player.name}** has finished {activity_data['description'].lower()}",
-                color=discord.Color.green()
-            )
-            
-            embed.add_field(
-                name="📈 Rewards",
-                value=f"**Experience:** +{experience_reward}\n**Energy Used:** -{energy_cost}",
-                inline=True
-            )
+            # Regular activity - show placeholder for unimplemented activities
+            if activity.lower() == "foraging":
+                embed = discord.Embed(
+                    title="🌿 Foraging",
+                    description="**Foraging** will be coming soon! This will be a minigame where you can gather herbs, berries, and other natural resources.",
+                    color=discord.Color.green()
+                )
+                
+                embed.add_field(
+                    name="💡 Tip",
+                    value="Foraging will provide materials for the crafting system that will be unlocked later!",
+                    inline=False
+                )
+                
+                embed.add_field(
+                    name="📈 Energy Used",
+                    value=f"-{energy_cost}",
+                    inline=True
+                )
+            else:
+                # Other activities (when implemented)
+                experience_reward = activity_data.get('experience_reward', 0)
+                self.player.add_experience(experience_reward)
+                
+                # Create results embed
+                embed = discord.Embed(
+                    title=f"✅ {activity.title()} Complete!",
+                    description=f"**{self.player.name}** has finished {activity_data['description'].lower()}",
+                    color=discord.Color.green()
+                )
+                
+                embed.add_field(
+                    name="📈 Rewards",
+                    value=f"**Experience:** +{experience_reward}\n**Energy Used:** -{energy_cost}",
+                    inline=True
+                )
         
         # Check for level up
         if self.player.level > 1:  # Simple level up check
@@ -441,7 +507,7 @@ class ActivitySelectionView(discord.ui.View):
         embed.set_footer(text="Choose your next action!")
         
         # Send follow-up message
-        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, view=view, )
 
 
 class ContinueView(discord.ui.View):
@@ -463,7 +529,6 @@ class ContinueView(discord.ui.View):
         if not current_region:
             await interaction.response.send_message(
                 "❌ Error loading region data. Please try again later.",
-                ephemeral=True
             )
             return
         
@@ -495,7 +560,7 @@ class ContinueView(discord.ui.View):
     async def view_character(self, interaction: discord.Interaction, button: discord.ui.Button):
         """View character details"""
         embed = self.create_character_embed()
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, )
     
     def create_character_embed(self):
         """Create character information embed"""
@@ -547,7 +612,6 @@ class PlayerCog(commands.Cog):
         if self.bot.get_player(user_id):
             await interaction.response.send_message(
                 "❌ You already have a character! Use `/character` to view your stats.",
-                ephemeral=True
             )
             return
         
@@ -564,7 +628,6 @@ class PlayerCog(commands.Cog):
         if not player:
             await interaction.response.send_message(
                 "❌ You don't have a character yet! Use `/create_character` to create one.",
-                ephemeral=True
             )
             return
         
@@ -604,7 +667,7 @@ class PlayerCog(commands.Cog):
         
         embed.set_footer(text="Use the buttons below to take action!")
         
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.response.send_message(embed=embed, view=view, )
 
 
 async def setup(bot):

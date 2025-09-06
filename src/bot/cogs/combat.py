@@ -28,7 +28,6 @@ class EnemySelectionView(discord.ui.View):
         if not current_region:
             await interaction.response.send_message(
                 "❌ Error loading region data. Please try again later.",
-                ephemeral=True
             )
             return
         
@@ -38,7 +37,6 @@ class EnemySelectionView(discord.ui.View):
         if not available_enemies:
             await interaction.response.send_message(
                 f"❌ No enemies available in {current_region.name}.",
-                ephemeral=True
             )
             return
         
@@ -84,7 +82,6 @@ class EnemySelectionView(discord.ui.View):
         if self.bot.get_combat(interaction.channel_id):
             await interaction.response.send_message(
                 "❌ There's already an active combat in this channel!",
-                ephemeral=True
             )
             return
         
@@ -93,7 +90,6 @@ class EnemySelectionView(discord.ui.View):
         if not enemy_data:
             await interaction.response.send_message(
                 f"❌ Enemy data not found for **{enemy_id}**.",
-                ephemeral=True
             )
             return
         
@@ -198,7 +194,6 @@ class CombatView(discord.ui.View):
         if not combat:
             await interaction.response.send_message(
                 "❌ You're not in combat!",
-                ephemeral=True
             )
             return
         
@@ -321,7 +316,6 @@ class CombatView(discord.ui.View):
         if not self.player.inventory.items:
             await interaction.response.send_message(
                 "❌ You don't have any items to use!",
-                ephemeral=True
             )
             return
         
@@ -470,7 +464,6 @@ class ContinueAfterCombatView(discord.ui.View):
         if not current_region:
             await interaction.response.send_message(
                 "❌ Error loading region data. Please try again later.",
-                ephemeral=True
             )
             return
         
@@ -519,7 +512,7 @@ class ContinueAfterCombatView(discord.ui.View):
     async def view_character(self, interaction: discord.Interaction, button: discord.ui.Button):
         """View character details"""
         embed = self.create_character_embed()
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, )
     
     def create_character_embed(self):
         """Create character information embed"""
