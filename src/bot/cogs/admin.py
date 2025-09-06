@@ -137,6 +137,43 @@ class AdminCog(commands.Cog):
         )
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
+    
+    @app_commands.command(name="admin_sync_commands", description="Manually sync slash commands (Admin only)")
+    async def admin_sync_commands(self, interaction: discord.Interaction):
+        """Manually sync slash commands"""
+        # Check if user is admin
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message(
+                "❌ You don't have permission to use this command!",
+                ephemeral=True
+            )
+            return
+        
+        try:
+            # Sync commands to current guild
+            synced = await self.bot.tree.sync(guild=interaction.guild)
+            
+            embed = discord.Embed(
+                title="🔄 Commands Synced",
+                description=f"Successfully synced {len(synced)} slash commands to this server!",
+                color=discord.Color.green()
+            )
+            
+            embed.add_field(
+                name="📋 Synced Commands",
+                value="\n".join([f"• `/{cmd.name}`" for cmd in synced]),
+                inline=False
+            )
+            
+            embed.set_footer(text="Commands should now be available in this server!")
+            
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            
+        except Exception as e:
+            await interaction.response.send_message(
+                f"❌ Error syncing commands: {str(e)}",
+                ephemeral=True
+            )
 
 
 async def setup(bot):

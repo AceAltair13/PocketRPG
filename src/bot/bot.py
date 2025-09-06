@@ -47,10 +47,20 @@ class PocketRPG(commands.Bot):
         # Load all cogs (command modules)
         await self.load_cogs()
         
-        # Sync slash commands
+        # Sync slash commands to all guilds
         try:
+            # Sync to all guilds the bot is in
             synced = await self.tree.sync()
-            self.logger.info(f"Synced {len(synced)} slash commands")
+            self.logger.info(f"Synced {len(synced)} slash commands globally")
+            
+            # Also sync to each guild individually for faster updates
+            for guild in self.guilds:
+                try:
+                    guild_synced = await self.tree.sync(guild=guild)
+                    self.logger.info(f"Synced {len(guild_synced)} commands to guild: {guild.name}")
+                except Exception as guild_error:
+                    self.logger.warning(f"Failed to sync commands to guild {guild.name}: {guild_error}")
+                    
         except Exception as e:
             self.logger.error(f"Failed to sync commands: {e}")
     
@@ -78,6 +88,17 @@ class PocketRPG(commands.Bot):
         # Set bot status
         activity = discord.Game(name="PocketRPG | /help")
         await self.change_presence(activity=activity)
+    
+    async def on_guild_join(self, guild):
+        """Called when the bot joins a new guild"""
+        self.logger.info(f"Joined new guild: {guild.name} (ID: {guild.id})")
+        
+        # Sync commands to the new guild
+        try:
+            synced = await self.tree.sync(guild=guild)
+            self.logger.info(f"Synced {len(synced)} commands to new guild: {guild.name}")
+        except Exception as e:
+            self.logger.error(f"Failed to sync commands to new guild {guild.name}: {e}")
     
     async def on_command_error(self, ctx, error):
         """Handle command errors"""
