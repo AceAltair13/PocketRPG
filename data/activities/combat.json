@@ -1,0 +1,21 @@
+{
+  "id": "combat",
+  "name": "Combat",
+  "description": "Engage in combat with enemies in the region. Defeat enemies to gain experience, gold, and loot.",
+  "energy_cost": 10,
+  "requirements": {
+    "level": 1,
+    "items": [],
+    "tools": []
+  },
+  "rewards": {
+    "experience": 0,
+    "gold": 0,
+    "items": []
+  },
+  "success_rate": 1.0,
+  "duration": 0,
+  "category": "combat",
+  "region_specific": true,
+  "enemy_encounter": true
+}
