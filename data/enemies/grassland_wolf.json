@@ -1,0 +1,31 @@
+{
+  "id": "grassland_wolf",
+  "name": "Grassland Wolf",
+  "description": "A young wolf that hunts in the grasslands. Not very dangerous but can be aggressive.",
+  "type": "normal",
+  "behavior": "aggressive",
+  "base_level": 1,
+  "base_stats": {
+    "health": 25,
+    "mana": 10,
+    "attack": 8,
+    "defense": 2,
+    "speed": 12
+  },
+  "experience_reward": 15,
+  "gold_reward": 5,
+  "loot_table": [
+    {
+      "item": "wolf_pelt",
+      "drop_chance": 0.3,
+      "quantity": [1, 1]
+    },
+    {
+      "item": "wolf_fang",
+      "drop_chance": 0.2,
+      "quantity": [1, 2]
+    }
+  ],
+  "ai_abilities": [],
+  "spawn_regions": ["grasslands"]
+}

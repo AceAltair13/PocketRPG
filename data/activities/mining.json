@@ -1,0 +1,34 @@
+{
+  "id": "mining",
+  "name": "Mining",
+  "description": "Extract valuable ores and gems from rocky areas.",
+  "base_duration": 45,
+  "energy_cost": 20,
+  "required_tools": ["pickaxe"],
+  "possible_rewards": [
+    {
+      "item": "iron_ore",
+      "chance": 0.6,
+      "quantity": [1, 3]
+    },
+    {
+      "item": "copper_ore",
+      "chance": 0.4,
+      "quantity": [1, 2]
+    },
+    {
+      "item": "coal",
+      "chance": 0.3,
+      "quantity": [2, 5]
+    },
+    {
+      "item": "gemstone",
+      "chance": 0.05,
+      "quantity": [1, 1]
+    }
+  ],
+  "experience_reward": 10,
+  "skill_requirements": {
+    "mining": 0
+  }
+}

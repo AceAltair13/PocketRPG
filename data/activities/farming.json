@@ -1,0 +1,29 @@
+{
+  "id": "farming",
+  "name": "Farming",
+  "description": "Tend to crops and harvest food for sustenance.",
+  "base_duration": 60,
+  "energy_cost": 15,
+  "required_tools": ["hoe"],
+  "possible_rewards": [
+    {
+      "item": "wheat",
+      "chance": 0.5,
+      "quantity": [2, 5]
+    },
+    {
+      "item": "carrots",
+      "chance": 0.4,
+      "quantity": [1, 3]
+    },
+    {
+      "item": "potatoes",
+      "chance": 0.3,
+      "quantity": [1, 4]
+    }
+  ],
+  "experience_reward": 8,
+  "skill_requirements": {
+    "farming": 0
+  }
+}

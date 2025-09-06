@@ -1,0 +1,24 @@
+{
+  "id": "fists",
+  "name": "Bare Fists",
+  "description": "Your natural weapons. Not very effective, but always available.",
+  "type": "weapon",
+  "rarity": "common",
+  "quality": "poor",
+  "value": 0,
+  "level_requirement": 1,
+  "class_requirement": null,
+  "stackable": false,
+  "max_stack": 1,
+  "weapon_stats": {
+    "damage": 3,
+    "damage_type": "physical",
+    "weapon_type": "unarmed",
+    "critical_chance": 0.02,
+    "critical_multiplier": 1.5
+  },
+  "stat_bonuses": {},
+  "durability": 999,
+  "max_durability": 999,
+  "slot": "weapon"
+}

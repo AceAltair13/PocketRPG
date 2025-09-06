@@ -12,6 +12,9 @@ from .enums import (
     ItemType, ItemRarity, ItemQuality, EquipmentSlot,
     EffectType, EffectTarget, CombatAction, CombatResult
 )
+from .player_creation import PlayerCreation
+from .region import Region, RegionManager
+from .data_loader import data_loader
 
 __all__ = [
     # Entities
@@ -25,5 +28,7 @@ __all__ = [
     # Enums
     'EntityType', 'StatType', 'PlayerClass', 'EnemyType', 'EnemyBehavior',
     'ItemType', 'ItemRarity', 'ItemQuality', 'EquipmentSlot',
-    'EffectType', 'EffectTarget', 'CombatAction', 'CombatResult'
+    'EffectType', 'EffectTarget', 'CombatAction', 'CombatResult',
+    # New Systems
+    'PlayerCreation', 'Region', 'RegionManager', 'data_loader'
 ]

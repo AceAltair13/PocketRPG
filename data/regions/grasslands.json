@@ -1,0 +1,20 @@
+{
+  "id": "grasslands",
+  "name": "Grasslands",
+  "description": "A peaceful starting area with gentle rolling hills and abundant wildlife.",
+  "level": 0,
+  "unlock_requirements": {
+    "level": 1,
+    "items": [],
+    "quests": []
+  },
+  "loot_multiplier": 1.0,
+  "enemy_level_bonus": 0,
+  "available_activities": ["combat", "foraging", "farming"],
+  "travel_cost": {
+    "gold": 0,
+    "items": []
+  },
+  "neighboring_regions": ["forest_clearing"],
+  "environmental_effects": []
+}
