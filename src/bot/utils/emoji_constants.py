@@ -54,3 +54,9 @@ class Emojis:
     GRID_EMPTY = UIEmojis.get_foraging('grid_empty')
     GRID_FOUND = UIEmojis.get_foraging('grid_found')
     GRID_MISS = UIEmojis.get_foraging('grid_miss')
+    
+    # Player Class Emojis
+    WARRIOR = UIEmojis.get_player_class('warrior')
+    MAGE = UIEmojis.get_player_class('mage')
+    ROGUE = UIEmojis.get_player_class('rogue')
+    CLERIC = UIEmojis.get_player_class('cleric')

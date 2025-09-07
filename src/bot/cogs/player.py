@@ -10,6 +10,7 @@ from ...game import PlayerCreation, PlayerClass
 from ...game.enums import StatType, EquipmentSlot
 # UIEmojis no longer needed - using Emojis constants
 from ..utils import EmbedUtils, ResponseUtils, PlayerUtils, Emojis
+from ...utils.ui_emojis import UIEmojis
 
 
 class CharacterCreationModal(discord.ui.Modal):
@@ -58,8 +59,9 @@ class CharacterCreationModal(discord.ui.Modal):
         classes = PlayerCreation.get_available_classes()
         for player_class in classes:
             description = PlayerCreation.get_class_description(player_class)
+            class_emoji = UIEmojis.get_player_class(player_class.value)
             embed.add_field(
-                name=f"{Emojis.ATTACK} {player_class.value.title()}",
+                name=f"{class_emoji} {player_class.value.title()}",
                 value=description,
                 inline=False
             )
@@ -76,19 +78,19 @@ class ClassSelectionView(discord.ui.View):
         self.character_name = character_name
         self.bot = bot
     
-    @discord.ui.button(label="Warrior", style=discord.ButtonStyle.primary, emoji=Emojis.ATTACK)
+    @discord.ui.button(label="Warrior", style=discord.ButtonStyle.primary, emoji=Emojis.WARRIOR)
     async def warrior_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.WARRIOR)
     
-    @discord.ui.button(label="Mage", style=discord.ButtonStyle.primary, emoji=Emojis.MANA)
+    @discord.ui.button(label="Mage", style=discord.ButtonStyle.primary, emoji=Emojis.MAGE)
     async def mage_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.MAGE)
     
-    @discord.ui.button(label="Rogue", style=discord.ButtonStyle.primary, emoji=Emojis.SPEED)
+    @discord.ui.button(label="Rogue", style=discord.ButtonStyle.primary, emoji=Emojis.ROGUE)
     async def rogue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.ROGUE)
     
-    @discord.ui.button(label="Cleric", style=discord.ButtonStyle.primary, emoji=Emojis.HEALTH)
+    @discord.ui.button(label="Cleric", style=discord.ButtonStyle.primary, emoji=Emojis.CLERIC)
     async def cleric_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.CLERIC)
     
@@ -726,8 +728,9 @@ class PlayerCog(commands.Cog):
             return
         
         # Create character embed
+        class_emoji = UIEmojis.get_player_class(player.player_class.value)
         embed = discord.Embed(
-            title=f"📊 {player.name} - Level {player.level} {player.player_class.value.title()}",
+            title=f"📊 {player.name} - Level {player.level} {class_emoji} {player.player_class.value.title()}",
             color=discord.Color.blue()
         )
         

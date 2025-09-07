@@ -27,7 +27,7 @@ class UIEmojis:
     
     # UI element emojis
     UI = {
-        'inventory': '🎒',
+        'inventory': '<:inventory:1414094791465111562>',
         'stats': '📈',
         'character': '👤',
         'explore': '🗺️',
@@ -40,6 +40,14 @@ class UIEmojis:
         'gold': '💰',
         'equipment': '⚔️',
         'location': '📍'
+    }
+    
+    # Player class emojis
+    PLAYER_CLASS = {
+        'warrior': '<:warrior:1414098566355619871>',
+        'mage': '<:mage:1414098575646003240>',
+        'rogue': '<:rogue:1414098584714084414>',
+        'cleric': '<:cleric:1414098594218377379>'
     }
     
     # Status emojis
@@ -94,3 +102,7 @@ class UIEmojis:
     @classmethod
     def get_foraging(cls, grid_state: str) -> str:
         return cls.FORAGING.get(grid_state.lower(), '❓')
+    
+    @classmethod
+    def get_player_class(cls, player_class: str) -> str:
+        return cls.PLAYER_CLASS.get(player_class.lower(), '❓')

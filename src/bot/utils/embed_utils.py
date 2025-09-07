@@ -63,8 +63,9 @@ class EmbedUtils:
     @staticmethod
     def create_character_embed(player) -> discord.Embed:
         """Create a character information embed"""
+        class_emoji = UIEmojis.get_player_class(player.player_class.value)
         embed = discord.Embed(
-            title=f"{UIEmojis.get_ui('character')} {player.name} - Level {player.level} {player.player_class.value.title()}",
+            title=f"{UIEmojis.get_ui('character')} {player.name} - Level {player.level} {class_emoji} {player.player_class.value.title()}",
             color=discord.Color.blue()
         )
         
@@ -100,16 +101,23 @@ class EmbedUtils:
     def create_inventory_embed(player) -> discord.Embed:
         """Create an inventory display embed"""
         embed = discord.Embed(
-            title=f"{UIEmojis.get_ui('inventory')} {player.name}'s Inventory",
+            title=f"{player.name}'s Inventory",
             color=discord.Color.blue()
         )
+        
+        # Set inventory emoji as thumbnail
+        inventory_emoji = UIEmojis.get_ui('inventory')
+        emoji_url = EmbedUtils.emoji_to_url(inventory_emoji)
+        if emoji_url:
+            embed.set_thumbnail(url=emoji_url)
         
         inventory_items = player.inventory.items
         
         if not inventory_items:
+            # Add a simple message when inventory is empty
             embed.add_field(
-                name=f"{UIEmojis.get_ui('inventory')} Inventory",
-                value="Your inventory is empty.",
+                name="Your inventory is empty.",
+                value="",
                 inline=False
             )
         else:
