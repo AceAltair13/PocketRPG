@@ -3,12 +3,35 @@ Shared embed creation utilities to reduce code duplication
 """
 
 import discord
+import re
 from typing import Optional, Dict, Any, List
 from ...utils.ui_emojis import UIEmojis
 
 
 class EmbedUtils:
     """Utility class for creating common Discord embeds"""
+    
+    @staticmethod
+    def emoji_to_url(emoji: str) -> Optional[str]:
+        """
+        Convert Discord emoji markdown to proper URL format.
+        Converts <:name:id> to https://cdn.discordapp.com/emojis/id.webp
+        """
+        if not emoji or not isinstance(emoji, str):
+            return None
+        
+        # Check if it's already a URL
+        if emoji.startswith('http'):
+            return emoji
+        
+        # Check if it's a Discord emoji markdown
+        match = re.match(r'<:(\w+):(\d+)>', emoji)
+        if match:
+            emoji_id = match.group(2)
+            return f"https://cdn.discordapp.com/emojis/{emoji_id}.webp"
+        
+        # If it's a Unicode emoji, return None (can't be used as thumbnail)
+        return None
     
     @staticmethod
     def create_error_embed(message: str, title: str = "Error") -> discord.Embed:

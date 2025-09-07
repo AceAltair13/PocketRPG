@@ -317,7 +317,10 @@ class CombatView(discord.ui.View):
         
         # Set enemy emoji as thumbnail
         if hasattr(self.enemy, 'emoji') and self.enemy.emoji:
-            embed.set_thumbnail(url=self.enemy.emoji)
+            from ..utils import EmbedUtils
+            emoji_url = EmbedUtils.emoji_to_url(self.enemy.emoji)
+            if emoji_url:
+                embed.set_thumbnail(url=emoji_url)
         
         # Player stats
         player_stats = f"**HP:** {self.player.get_stat(StatType.HEALTH)}/{self.player.get_stat(StatType.MAX_HEALTH)}\n**MP:** {self.player.get_stat(StatType.MANA)}/{self.player.get_stat(StatType.MAX_MANA)}"
