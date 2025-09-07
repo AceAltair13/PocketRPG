@@ -148,6 +148,11 @@ class CharacterActionView(discord.ui.View):
         self.bot = bot
         self.show_enemies = show_enemies
     
+    @discord.ui.button(label="Explore", style=discord.ButtonStyle.success, emoji=Emojis.EXPLORE)
+    async def explore(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Start exploring"""
+        await self._show_exploration_view(interaction)
+    
     @discord.ui.button(label="View Character", style=discord.ButtonStyle.secondary, emoji=Emojis.CHARACTER)
     async def view_character(self, interaction: discord.Interaction, button: discord.ui.Button):
         """View character details"""
@@ -160,16 +165,6 @@ class CharacterActionView(discord.ui.View):
         embed = EmbedUtils.create_inventory_embed(self.player)
         view = InventoryView(self.player, self.bot)
         await interaction.response.send_message(embed=embed, view=view)
-    
-    @discord.ui.button(label="Explore", style=discord.ButtonStyle.success, emoji=Emojis.EXPLORE)
-    async def explore(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Start exploring"""
-        await self._show_exploration_view(interaction)
-    
-    @discord.ui.button(label="Continue Exploring", style=discord.ButtonStyle.primary, emoji=Emojis.EXPLORE)
-    async def continue_exploring(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Continue exploring after activity completion"""
-        await self._show_exploration_view(interaction)
     
     async def _show_exploration_view(self, interaction: discord.Interaction):
         """Shared method to show exploration view"""
