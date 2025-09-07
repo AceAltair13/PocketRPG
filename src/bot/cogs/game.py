@@ -8,6 +8,7 @@ from discord.ext import commands
 from discord import app_commands
 from ...game import data_loader, RegionManager
 from ...game.enums import PlayerClass, StatType
+from ...utils.emoji_manager import get_emoji_manager
 
 
 class GameCog(commands.Cog):
@@ -24,7 +25,7 @@ class GameCog(commands.Cog):
         
         if not player:
             await interaction.response.send_message(
-                "❌ You don't have a character yet! Use `/create_character` to create one.",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have a character yet! Use `/create_character` to create one.",
             )
             return
         
@@ -35,13 +36,13 @@ class GameCog(commands.Cog):
         
         if not current_region:
             await interaction.response.send_message(
-                "❌ Error loading region data. Please try again later.",
+                f"{get_emoji_manager().get_status_emoji('error')} Error loading region data. Please try again later.",
             )
             return
         
         # Create exploration embed
         embed = discord.Embed(
-            title=f"🗺️ Exploring {current_region.name}",
+            title=f"{get_emoji_manager().get_ui_emoji('explore')} Exploring {current_region.name}",
             description=current_region.description,
             color=discord.Color.green()
         )
@@ -75,7 +76,7 @@ class GameCog(commands.Cog):
         # Region info
         region_info = f"**Level:** {current_region.level}\n**Loot Multiplier:** {current_region.loot_multiplier}x\n**Enemy Bonus:** +{current_region.enemy_level_bonus}"
         embed.add_field(
-            name="📊 Region Info",
+            name=f"{get_emoji_manager().get_ui_emoji('stats')} Region Info",
             value=region_info,
             inline=True
         )
@@ -84,7 +85,7 @@ class GameCog(commands.Cog):
         effects = current_region.get_environmental_effects()
         if effects:
             embed.add_field(
-                name="🌤️ Environmental Effects",
+                name=f"{get_emoji_manager().get_effects_emoji('buff')} Environmental Effects",
                 value="\n".join([f"• {effect.title()}" for effect in effects]),
                 inline=False
             )
@@ -108,7 +109,7 @@ class GameCog(commands.Cog):
         
         if not player:
             await interaction.response.send_message(
-                "❌ You don't have a character yet! Use `/create_character` to create one.",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have a character yet! Use `/create_character` to create one.",
             )
             return
         
@@ -119,7 +120,7 @@ class GameCog(commands.Cog):
         
         if not current_region:
             await interaction.response.send_message(
-                "❌ Error loading region data. Please try again later.",
+                f"{get_emoji_manager().get_status_emoji('error')} Error loading region data. Please try again later.",
             )
             return
         
@@ -128,7 +129,7 @@ class GameCog(commands.Cog):
         activity_name = activity.value
         if activity_name.lower() not in available_activities:
             await interaction.response.send_message(
-                f"❌ **{activity_name.title()}** is not available in {current_region.name}.\n\nAvailable activities: {', '.join([a.title() for a in available_activities])}",
+                f"{get_emoji_manager().get_status_emoji('error')} **{activity_name.title()}** is not available in {current_region.name}.\n\nAvailable activities: {', '.join([a.title() for a in available_activities])}",
             )
             return
         
@@ -136,7 +137,7 @@ class GameCog(commands.Cog):
         activity_data = data_loader.load_activity(activity_name.lower())
         if not activity_data:
             await interaction.response.send_message(
-                f"❌ Activity data not found for **{activity_name.title()}**.",
+                f"{get_emoji_manager().get_status_emoji('error')} Activity data not found for **{activity_name.title()}**.",
             )
             return
         
@@ -144,7 +145,7 @@ class GameCog(commands.Cog):
         energy_cost = activity_data.get('energy_cost', 0)
         if player.get_stat(player.stats[StatType.MANA]) < energy_cost:  # Using mana as energy for now
             await interaction.response.send_message(
-                f"❌ Not enough energy! You need {energy_cost} energy to perform **{activity_name.title()}**.",
+                f"{get_emoji_manager().get_status_emoji('error')} Not enough energy! You need {energy_cost} energy to perform **{activity_name.title()}**.",
             )
             return
         
@@ -166,13 +167,13 @@ class GameCog(commands.Cog):
         
         # Create results embed
         embed = discord.Embed(
-            title=f"✅ {activity_name.title()} Complete!",
+            title=f"{get_emoji_manager().get_status_emoji('success')} {activity_name.title()} Complete!",
             description=f"**{player.name}** has finished {activity_data['description'].lower()}",
             color=discord.Color.green()
         )
         
         embed.add_field(
-            name="📈 Rewards",
+            name=f"{get_emoji_manager().get_ui_emoji('stats')} Rewards",
             value=f"**Experience:** +{experience_reward}\n**Energy Used:** -{energy_cost}",
             inline=True
         )
@@ -180,7 +181,7 @@ class GameCog(commands.Cog):
         # Check for level up
         if player.level > 1:  # Simple level up check
             embed.add_field(
-                name="🎉 Level Up!",
+                name=f"{get_emoji_manager().get_status_emoji('complete')} Level Up!",
                 value=f"**{player.name}** is now level {player.level}!",
                 inline=True
             )
@@ -198,7 +199,7 @@ class GameCog(commands.Cog):
         
         if not player:
             await interaction.response.send_message(
-                "❌ You don't have a character yet! Use `/create_character` to create one.",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have a character yet! Use `/create_character` to create one.",
             )
             return
         
@@ -207,12 +208,12 @@ class GameCog(commands.Cog):
         
         if not accessible_regions:
             await interaction.response.send_message(
-                "❌ No regions available.",
+                f"{get_emoji_manager().get_status_emoji('error')} No regions available.",
             )
             return
         
         embed = discord.Embed(
-            title="🗺️ Available Regions",
+            title=f"{get_emoji_manager().get_ui_emoji('explore')} Available Regions",
             description="Explore different regions to find new challenges and rewards!",
             color=discord.Color.blue()
         )
@@ -221,13 +222,13 @@ class GameCog(commands.Cog):
             if region["accessible"]:
                 if region["current"]:
                     name = f"📍 {region['name']} (Current)"
-                    value = f"**Level:** {region['level']}\n**Status:** ✅ Accessible"
+                    value = f"**Level:** {region['level']}\n**Status:** {get_emoji_manager().get_status_emoji('success')} Accessible"
                 else:
-                    name = f"🌱 {region['name']}"
-                    value = f"**Level:** {region['level']}\n**Status:** ✅ Accessible"
+                    name = f"{get_emoji_manager().get_ui_emoji('location')} {region['name']}"
+                    value = f"**Level:** {region['level']}\n**Status:** {get_emoji_manager().get_status_emoji('success')} Accessible"
             else:
                 name = f"🔒 {region['name']}"
-                value = f"**Level:** {region['level']}\n**Status:** ❌ {region['reason']}"
+                value = f"**Level:** {region['level']}\n**Status:** {get_emoji_manager().get_status_emoji('error')} {region['reason']}"
             
             embed.add_field(name=name, value=value, inline=True)
         
@@ -239,7 +240,7 @@ class GameCog(commands.Cog):
     async def help_command(self, interaction: discord.Interaction):
         """Show help information"""
         embed = discord.Embed(
-            title="🎮 PocketRPG Help",
+            title=f"{get_emoji_manager().get_ui_emoji('character')} PocketRPG Help",
             description="Welcome to PocketRPG! Here are the available commands:",
             color=discord.Color.blue()
         )
@@ -257,7 +258,7 @@ class GameCog(commands.Cog):
         )
         
         embed.add_field(
-            name="⚔️ Combat Commands",
+            name=f"{get_emoji_manager().get_activity_emoji('combat')} Combat Commands",
             value="`/combat` - Start combat with an enemy\n`/attack` - Attack in combat\n`/defend` - Defend in combat",
             inline=False
         )

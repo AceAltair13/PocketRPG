@@ -1,0 +1,13 @@
+{
+  "id": "herbs",
+  "name": "Medicinal Herbs",
+  "description": "Common herbs with healing properties. Used in alchemy and medicine.",
+  "type": "material",
+  "rarity": "common",
+  "quality": "normal",
+  "value": 3,
+  "level_requirement": 1,
+  "stackable": true,
+  "max_stack": 99
+}
+

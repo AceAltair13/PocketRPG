@@ -6,6 +6,7 @@ Handles administrative functions and bot management
 import discord
 from discord.ext import commands
 from discord import app_commands
+from ...utils.emoji_manager import get_emoji_manager
 
 
 class AdminCog(commands.Cog):
@@ -18,7 +19,7 @@ class AdminCog(commands.Cog):
     async def ping(self, interaction: discord.Interaction):
         """Simple ping command for testing"""
         embed = discord.Embed(
-            title="🏓 Pong!",
+            title=f"{get_emoji_manager().get_ui_emoji('ping')} Pong!",
             description=f"Bot latency: {round(self.bot.latency * 1000)}ms",
             color=discord.Color.green()
         )
@@ -30,7 +31,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin (simplified check)
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                "❌ You don't have permission to use this command!",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
             )
             return
         
@@ -40,7 +41,7 @@ class AdminCog(commands.Cog):
         total_guilds = len(self.bot.guilds)
         
         embed = discord.Embed(
-            title="📊 Bot Statistics",
+            title=f"{get_emoji_manager().get_ui_emoji('stats')} Bot Statistics",
             color=discord.Color.blue()
         )
         
@@ -57,7 +58,7 @@ class AdminCog(commands.Cog):
         )
         
         embed.add_field(
-            name="🎮 Game Data",
+            name=f"{get_emoji_manager().get_ui_emoji('character')} Game Data",
             value=f"**Regions:** {len(self.bot.region_manager.get_available_regions())}\n**Activities:** {len(self.bot.region_manager.data_loader.list_activities())}",
             inline=True
         )
@@ -72,7 +73,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                "❌ You don't have permission to use this command!",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
             )
             return
         
@@ -87,7 +88,7 @@ class AdminCog(commands.Cog):
             )
             
             embed.add_field(
-                name="📊 Reloaded Data",
+                name=f"{get_emoji_manager().get_ui_emoji('stats')} Reloaded Data",
                 value=f"**Regions:** {len(self.bot.region_manager.data_loader.list_regions())}\n**Activities:** {len(self.bot.region_manager.data_loader.list_activities())}\n**Items:** {len(self.bot.region_manager.data_loader.list_items())}\n**Enemies:** {len(self.bot.region_manager.data_loader.list_enemies())}",
                 inline=False
             )
@@ -96,7 +97,7 @@ class AdminCog(commands.Cog):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"❌ Error reloading data: {str(e)}",
+                f"{get_emoji_manager().get_status_emoji('error')} Error reloading data: {str(e)}",
             )
     
     @app_commands.command(name="admin_clear_combats", description="Clear all active combats (Admin only)")
@@ -105,7 +106,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                "❌ You don't have permission to use this command!",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
             )
             return
         
@@ -127,7 +128,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                "❌ You don't have permission to use this command!",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
             )
             return
         
@@ -149,7 +150,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                "❌ You don't have permission to use this command!",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
             )
             return
         
@@ -175,7 +176,50 @@ class AdminCog(commands.Cog):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"❌ Error syncing commands: {str(e)}",
+                f"{get_emoji_manager().get_status_emoji('error')} Error syncing commands: {str(e)}",
+            )
+    
+    @app_commands.command(name="admin_sync_global", description="Sync slash commands to ALL servers (Admin only)")
+    async def admin_sync_global(self, interaction: discord.Interaction):
+        """Manually sync slash commands to all servers"""
+        # Check if user is admin
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message(
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                ephemeral=True
+            )
+            return
+        
+        try:
+            # Sync commands globally
+            synced = await self.bot.tree.sync()
+            
+            embed = discord.Embed(
+                title="🌍 Global Commands Synced",
+                description=f"Successfully synced {len(synced)} slash commands to ALL servers!",
+                color=discord.Color.green()
+            )
+            
+            embed.add_field(
+                name="📋 Synced Commands",
+                value="\n".join([f"• `/{cmd.name}`" for cmd in synced]),
+                inline=False
+            )
+            
+            embed.add_field(
+                name="🏰 Servers",
+                value=f"Commands synced to {len(self.bot.guilds)} servers",
+                inline=True
+            )
+            
+            embed.set_footer(text="All commands should now be available in all servers!")
+            
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            
+        except Exception as e:
+            await interaction.response.send_message(
+                f"{get_emoji_manager().get_status_emoji('error')} Error syncing commands globally: {str(e)}",
+                ephemeral=True
             )
     
     @app_commands.command(name="admin_clear_commands", description="Clear all slash commands (Admin only)")
@@ -184,7 +228,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                "❌ You don't have permission to use this command!",
+                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
             )
             return
         
@@ -209,7 +253,7 @@ class AdminCog(commands.Cog):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"❌ Error clearing commands: {str(e)}",
+                f"{get_emoji_manager().get_status_emoji('error')} Error clearing commands: {str(e)}",
             )
 
 

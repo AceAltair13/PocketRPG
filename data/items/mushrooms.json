@@ -1,0 +1,16 @@
+{
+  "id": "mushrooms",
+  "name": "Wild Mushrooms",
+  "description": "Edible mushrooms found in damp areas. Some have magical properties.",
+  "type": "consumable",
+  "rarity": "common",
+  "quality": "normal",
+  "value": 4,
+  "level_requirement": 1,
+  "stackable": true,
+  "max_stack": 30,
+  "effects": {
+    "mana_restore": 5
+  }
+}
+

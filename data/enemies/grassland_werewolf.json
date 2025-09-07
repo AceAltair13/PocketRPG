@@ -1,0 +1,43 @@
+{
+  "id": "grassland_werewolf",
+  "name": "Grassland Werewolf",
+  "description": "A cursed creature that transforms between human and wolf forms. Extremely dangerous and unpredictable.",
+  "type": "mini_boss",
+  "behavior": "aggressive",
+  "base_level": 4,
+  "base_stats": {
+    "health": 80,
+    "mana": 30,
+    "attack": 22,
+    "defense": 8,
+    "speed": 18
+  },
+  "experience_reward": 75,
+  "gold_reward": 30,
+  "loot_table": [
+    {
+      "item": "werewolf_pelt",
+      "drop_chance": 0.7,
+      "quantity": [1, 1]
+    },
+    {
+      "item": "werewolf_fang",
+      "drop_chance": 0.5,
+      "quantity": [1, 2]
+    },
+    {
+      "item": "cursed_claw",
+      "drop_chance": 0.3,
+      "quantity": [1, 1]
+    },
+    {
+      "item": "lycanthrope_essence",
+      "drop_chance": 0.15,
+      "quantity": [1, 1]
+    }
+  ],
+  "ai_abilities": ["transform", "berserker_rage", "pack_howl", "moonlight_heal"],
+  "spawn_regions": ["grasslands"],
+  "rarity": "rare",
+  "emoji": "🐺"
+}

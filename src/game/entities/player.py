@@ -33,6 +33,14 @@ class Player(Entity):
         self.available_skills: List[str] = []
         self.learned_skills: List[str] = []
         
+        # Activity skill levels
+        self.activity_skills: Dict[str, int] = {
+            "foraging": 1,  # Start at level 1
+            "mining": 0,
+            "farming": 0,
+            "scouting": 1
+        }
+        
         # Current location
         self.current_region: str = "grasslands"
         
@@ -194,6 +202,29 @@ class Player(Entity):
         """Get the cost to learn a skill"""
         # Simple cost calculation for MVP
         return 1
+    
+    def get_activity_skill_level(self, activity: str) -> int:
+        """Get the skill level for a specific activity"""
+        return self.activity_skills.get(activity, 0)
+    
+    def add_activity_experience(self, activity: str, amount: int) -> bool:
+        """Add experience to an activity skill, return True if leveled up"""
+        if activity not in self.activity_skills:
+            return False
+        
+        current_level = self.activity_skills[activity]
+        # Simple leveling: 10 experience per level
+        exp_needed = current_level * 10
+        
+        # For now, just add 1 experience per successful activity
+        # In a real system, you'd track activity experience separately
+        if amount >= 1:  # Successful activity
+            new_level = min(current_level + 1, 5)  # Cap at level 5
+            if new_level > current_level:
+                self.activity_skills[activity] = new_level
+                return True
+        
+        return False
     
     def get_available_actions(self) -> List[str]:
         """Get list of available actions for the player"""

@@ -1,7 +1,7 @@
 {
   "id": "wolf_leader_crown",
   "name": "Wolf Leader Crown",
-  "description": "A special crown from the alpha wolf. Rare and valuable.",
+  "description": "A special crown from a wolf leader. Rare and valuable.",
   "type": "material",
   "rarity": "rare",
   "quality": "good",

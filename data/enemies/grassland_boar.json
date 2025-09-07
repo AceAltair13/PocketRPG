@@ -28,5 +28,6 @@
   ],
   "ai_abilities": [],
   "spawn_regions": ["grasslands"],
-  "rarity": "common"
+  "rarity": "common",
+  "emoji": "🐗"
 }

@@ -1,0 +1,16 @@
+{
+  "id": "wild_berries",
+  "name": "Wild Berries",
+  "description": "Sweet, juicy berries found in the wild. Can be eaten for a small health boost.",
+  "type": "consumable",
+  "rarity": "common",
+  "quality": "normal",
+  "value": 2,
+  "level_requirement": 1,
+  "stackable": true,
+  "max_stack": 50,
+  "effects": {
+    "heal": 10
+  }
+}
+
