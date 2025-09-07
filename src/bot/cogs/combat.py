@@ -315,6 +315,10 @@ class CombatView(discord.ui.View):
             color=discord.Color.red()
         )
         
+        # Set enemy emoji as thumbnail
+        if hasattr(self.enemy, 'emoji') and self.enemy.emoji:
+            embed.set_thumbnail(url=self.enemy.emoji)
+        
         # Player stats
         player_stats = f"**HP:** {self.player.get_stat(StatType.HEALTH)}/{self.player.get_stat(StatType.MAX_HEALTH)}\n**MP:** {self.player.get_stat(StatType.MANA)}/{self.player.get_stat(StatType.MAX_MANA)}"
         embed.add_field(name=f"👤 {self.player.name}", value=player_stats, inline=True)

@@ -566,11 +566,13 @@ class ActivitySelectionView(discord.ui.View):
                     color=discord.Color.red()
                 )
                 
-                # Get enemy emoji
+                # Get enemy emoji and set as thumbnail
                 enemy_emoji = encounter["enemy_data"]["emoji"] if encounter["enemy_data"] else "👹"
+                if enemy_emoji:
+                    embed.set_thumbnail(url=enemy_emoji)
                 
                 embed.add_field(
-                    name=f"{enemy_emoji} Enemy Details",
+                    name="👹 Enemy Details",
                     value=f"**Name:** {enemy_data['name']}\n**Level:** {enemy_data['base_level']}\n**Type:** {encounter_type.title()}",
                     inline=True
                 )
