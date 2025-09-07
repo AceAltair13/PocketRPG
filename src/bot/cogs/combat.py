@@ -95,18 +95,55 @@ class CombatView(discord.ui.View):
                     # Load item data
                     item_data = self.bot.region_manager.data_loader.load_item(item_id)
                     if item_data:
-                        # Create item instance
-                        from ...game.items.item import Item
+                        # Create item instance using the proper item creation method
+                        from ...game.items.item import ConsumableItem, WeaponItem, ArmorItem, EquipmentItem
                         from ...game.enums import ItemType, ItemRarity, ItemQuality
                         
-                        item = Item(
-                            name=item_data['name'],
-                            item_type=ItemType(item_data['type']),
-                            description=item_data['description'],
-                            rarity=ItemRarity(item_data['rarity']),
-                            quality=ItemQuality(item_data['quality']),
-                            value=item_data['value']
-                        )
+                        item_type = ItemType(item_data['type'])
+                        item_rarity = ItemRarity(item_data['rarity'])
+                        item_quality = ItemQuality(item_data['quality'])
+                        item_emoji = item_data.get('emoji', '❓')
+                        
+                        # Create the appropriate item subclass based on type
+                        if item_type == ItemType.CONSUMABLE:
+                            item = ConsumableItem(
+                                name=item_data['name'],
+                                description=item_data['description'],
+                                rarity=item_rarity,
+                                quality=item_quality,
+                                value=item_data['value'],
+                                emoji=item_emoji
+                            )
+                        elif item_type == ItemType.WEAPON:
+                            item = WeaponItem(
+                                name=item_data['name'],
+                                description=item_data['description'],
+                                rarity=item_rarity,
+                                quality=item_quality,
+                                value=item_data['value'],
+                                level_requirement=item_data.get('level_requirement', 1),
+                                emoji=item_emoji
+                            )
+                        elif item_type == ItemType.ARMOR:
+                            item = ArmorItem(
+                                name=item_data['name'],
+                                description=item_data['description'],
+                                rarity=item_rarity,
+                                quality=item_quality,
+                                value=item_data['value'],
+                                level_requirement=item_data.get('level_requirement', 1),
+                                emoji=item_emoji
+                            )
+                        else:
+                            # Default to EquipmentItem for other types
+                            item = EquipmentItem(
+                                name=item_data['name'],
+                                description=item_data['description'],
+                                rarity=item_rarity,
+                                quality=item_quality,
+                                value=item_data['value'],
+                                emoji=item_emoji
+                            )
                         
                         # Add to player inventory
                         self.player.inventory.add_item(item, quantity)
