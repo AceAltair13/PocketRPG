@@ -138,6 +138,7 @@ class CombatView(discord.ui.View):
                             # Default to EquipmentItem for other types
                             item = EquipmentItem(
                                 name=item_data['name'],
+                                item_type=item_type,
                                 description=item_data['description'],
                                 rarity=item_rarity,
                                 quality=item_quality,
