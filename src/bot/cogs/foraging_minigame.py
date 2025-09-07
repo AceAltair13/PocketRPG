@@ -11,17 +11,18 @@ from ...game.entities.player import Player
 from ...game import data_loader
 from ...game.items.item import ConsumableItem
 from ...game.enums import ItemRarity, ItemQuality, StatType
-from ...utils.emoji_manager import get_emoji_manager
+# UIEmojis no longer needed - using Emojis constants
+from ..utils import Emojis
 
 
 class ForagingButton(discord.ui.Button):
     """Individual button in the foraging grid"""
     
     def __init__(self, row: int, col: int, has_loot: bool = False, loot_item: Optional[str] = None):
-        emoji_mgr = get_emoji_manager()
+        # Use UIEmojis directly
         super().__init__(
             style=discord.ButtonStyle.secondary,
-            label=emoji_mgr.get_foraging_emoji('grid_empty'),
+            label=Emojis.GRID_EMPTY,
             row=row,
             disabled=False
         )
@@ -124,7 +125,7 @@ class ForagingMinigameView(discord.ui.View):
     
     def _create_initial_embed(self) -> discord.Embed:
         """Create the initial game embed"""
-        emoji_mgr = get_emoji_manager()
+        # Use UIEmojis directly
         grid_desc = self._get_grid_description()
         
         embed = discord.Embed(
@@ -140,7 +141,7 @@ class ForagingMinigameView(discord.ui.View):
         )
         
         embed.add_field(
-            name=f"{get_emoji_manager().get_ui_emoji('stats')} Game Status",
+            name=f"{Emojis.STATS} Game Status",
             value=f"**Tries Remaining:** {self.max_tries - self.current_tries}\n**Items Found:** {len(self.found_items)}/{self.num_items}",
             inline=True
         )
@@ -175,14 +176,14 @@ class ForagingMinigameView(discord.ui.View):
         # Update description based on game state
         if self.game_over:
             if len(self.found_items) == self.num_items:
-                self.embed.description = f"{get_emoji_manager().get_status_emoji('complete')} **Perfect!** You found all {self.num_items} hidden plants!"
+                self.embed.description = f"{Emojis.COMPLETE} **Perfect!** You found all {self.num_items} hidden plants!"
                 self.embed.color = discord.Color.gold()
             else:
                 self.embed.description = f"⏰ **Game Over!** You found {len(self.found_items)} out of {self.num_items} plants."
                 self.embed.color = discord.Color.orange()
         else:
             grid_desc = self._get_grid_description()
-            self.embed.description = f"{get_emoji_manager().get_activity_emoji('foraging')} Find the hidden plants and herbs! {grid_desc}"
+            self.embed.description = f"{Emojis.EXPLORE} Find the hidden plants and herbs! {grid_desc}"
         
         # Add instructions
         if not self.game_over:
@@ -199,13 +200,24 @@ class ForagingMinigameView(discord.ui.View):
             status_text += f"\n**Last Click:** Row {row+1}, Col {col+1}"
         
         self.embed.add_field(
-            name=f"{get_emoji_manager().get_ui_emoji('stats')} Game Status",
+            name=f"{Emojis.STATS} Game Status",
             value=status_text,
             inline=True
         )
         
         # Add found items
-        found_text = "None yet" if not self.found_items else "\n".join([f"• {item}" for item in self.found_items])
+        if not self.found_items:
+            found_text = "None yet"
+        else:
+            found_items_with_emojis = []
+            for item_name in self.found_items:
+                # Get item emoji
+                # Use UIEmojis directly
+                item_emoji = emoji_mgr.get_specific_item_emoji(item_name)
+                if item_emoji == '❓':  # If specific item not found, use item type
+                    item_emoji = emoji_mgr.get_item_type_emoji('material')  # Default to material
+                found_items_with_emojis.append(f"• {item_emoji} {item_name}")
+            found_text = "\n".join(found_items_with_emojis)
         self.embed.add_field(
             name="🎁 Found Items",
             value=found_text,
@@ -271,7 +283,8 @@ class ForagingMinigameView(discord.ui.View):
             description=item_data.get("description", f"A {item_name.replace('_', ' ')} found while foraging."),
             rarity=rarity,
             value=item_data.get("value", 1),
-            max_stack=item_data.get("max_stack", 99)
+            max_stack=item_data.get("max_stack", 99),
+            emoji=item_data.get("emoji", "❓")
         )
         
         # Add to player inventory
@@ -281,11 +294,11 @@ class ForagingMinigameView(discord.ui.View):
     async def handle_button_click(self, interaction: discord.Interaction, button: ForagingButton):
         """Handle button click in the minigame"""
         if self.game_over:
-            await interaction.response.send_message(f"{get_emoji_manager().get_status_emoji('error')} The game is already over!", ephemeral=True)
+            await interaction.response.send_message(f"{Emojis.ERROR} The game is already over!", ephemeral=True)
             return
         
         if interaction.user.id != self.player.user_id:
-            await interaction.response.send_message(f"{get_emoji_manager().get_status_emoji('error')} This isn't your foraging game!", ephemeral=True)
+            await interaction.response.send_message(f"{Emojis.ERROR} This isn't your foraging game!", ephemeral=True)
             return
         
         # Mark button as clicked
@@ -296,9 +309,9 @@ class ForagingMinigameView(discord.ui.View):
         # Check if button has loot
         if button.has_loot and button.loot_item:
             # Found an item!
-            emoji_mgr = get_emoji_manager()
+            # Use UIEmojis directly
             button.style = discord.ButtonStyle.success
-            button.label = emoji_mgr.get_foraging_emoji('grid_found')
+            button.label = Emojis.GRID_FOUND
             self.found_items.append(button.loot_item)
             self._add_item_to_inventory(button.loot_item)
             
@@ -311,9 +324,9 @@ class ForagingMinigameView(discord.ui.View):
                 return
         else:
             # No loot found
-            emoji_mgr = get_emoji_manager()
+            # Use UIEmojis directly
             button.style = discord.ButtonStyle.danger
-            button.label = emoji_mgr.get_foraging_emoji('grid_miss')
+            button.label = Emojis.GRID_MISS
         
         # Check if out of tries
         if self.current_tries >= self.max_tries:
@@ -350,12 +363,15 @@ class ForagingMinigameView(discord.ui.View):
     
     def _get_success_message(self) -> str:
         """Get success message with rewards"""
-        message = f"{get_emoji_manager().get_status_emoji('complete')} **{self.player.name}** successfully foraged all items!\n\n"
+        message = f"{Emojis.COMPLETE} **{self.player.name}** successfully foraged all items!\n\n"
         
         if self.collected_items:
             message += "**Collected Items:**\n"
             for item in self.collected_items:
-                message += f"• {item.name}\n"
+                # Get item emoji
+                # Use UIEmojis directly
+                item_emoji = item.emoji
+                message += f"• {item_emoji} {item.name}\n"
         
         message += f"\n**Experience Gained:** +{self.activity_data.get('experience_reward', 0)}\n"
         message += f"**Energy Used:** -{self.activity_data.get('energy_cost', 0)}\n"
@@ -376,7 +392,10 @@ class ForagingMinigameView(discord.ui.View):
         if self.collected_items:
             message += "**Collected Items:**\n"
             for item in self.collected_items:
-                message += f"• {item.name}\n"
+                # Get item emoji
+                # Use UIEmojis directly
+                item_emoji = item.emoji
+                message += f"• {item_emoji} {item.name}\n"
             message += f"\n**Experience Gained:** +{self.activity_data.get('experience_reward', 0) // 2}\n"
         else:
             message += "**No items found this time.**\n"

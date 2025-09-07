@@ -17,5 +17,6 @@
     "items": []
   },
   "neighboring_regions": ["forest_clearing"],
-  "environmental_effects": []
+  "environmental_effects": [],
+  "emoji": "🌾"
 }

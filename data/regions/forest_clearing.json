@@ -17,5 +17,6 @@
     "items": ["forest_key"]
   },
   "neighboring_regions": ["grasslands", "mountain_pass"],
-  "environmental_effects": ["dark_aura"]
+  "environmental_effects": ["dark_aura"],
+  "emoji": "🌲"
 }

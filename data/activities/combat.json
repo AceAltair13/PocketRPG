@@ -1,8 +1,8 @@
 {
-  "id": "scout",
-  "name": "Scout",
-  "description": "Explore the area carefully to scout for enemies. Higher chance of encountering common enemies, but rare enemies like mini-bosses may appear.",
-  "energy_cost": 8,
+  "id": "combat",
+  "name": "Combat",
+  "description": "Engage in battle with enemies. Defeat them to gain experience, gold, and loot.",
+  "energy_cost": 0,
   "requirements": {
     "level": 1,
     "items": [],
@@ -13,14 +13,15 @@
     "gold": 0,
     "items": []
   },
-  "success_rate": 0.7,
+  "success_rate": 1.0,
   "duration": 0,
-  "category": "exploration",
+  "category": "combat",
   "region_specific": true,
   "enemy_encounter": true,
   "encounter_rates": {
     "normal": 0.6,
     "mini_boss": 0.3,
     "boss": 0.1
-  }
+  },
+  "emoji": "⚔️"
 }

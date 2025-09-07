@@ -11,6 +11,7 @@
   "max_stack": 30,
   "effects": {
     "mana_restore": 5
-  }
+  },
+  "emoji": "🍄"
 }
 

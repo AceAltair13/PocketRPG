@@ -8,182 +8,38 @@ from discord.ext import commands
 from discord import app_commands
 from ...game import Combat, data_loader
 from ...game.enums import StatType
-from ...utils.emoji_manager import get_emoji_manager
+# UIEmojis no longer needed - using Emojis constants
+from ..utils import Emojis
 
 
-class EnemySelectionView(discord.ui.View):
-    """View for selecting enemies to fight"""
-    
-    def __init__(self, player, bot):
-        super().__init__(timeout=60)
-        self.player = player
-        self.bot = bot
-    
-    async def create_enemy_buttons(self, interaction: discord.Interaction):
-        """Create buttons for available enemies"""
-        # Get current region
-        region_manager = self.bot.region_manager
-        region_manager.set_current_region(self.player.current_region)
-        current_region = region_manager.get_current_region()
-        
-        if not current_region:
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error loading region data. Please try again later.",
-            )
-            return
-        
-        # Get available enemies with discovery status
-        available_enemies = current_region.get_enemies_with_discovery(self.player)
-        
-        if not available_enemies:
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} No enemies available in {current_region.name}.",
-            )
-            return
-        
-        # Create buttons for each enemy
-        for enemy in available_enemies:
-            if enemy["discovered"]:
-                # Show enemy type with emoji
-                type_emoji = {
-                    "normal": "👹",
-                    "mini_boss": "🔥",
-                    "boss": "👑"
-                }.get(enemy["type"], "👹")
-                
-                button = discord.ui.Button(
-                    label=f"{enemy['name']} (Lv.{enemy['level']})",
-                    style=discord.ButtonStyle.danger,
-                    emoji=type_emoji
-                )
-                button.callback = lambda i, eid=enemy["id"]: self.start_combat(i, eid)
-                self.add_item(button)
-            else:
-                # Show unknown enemy
-                button = discord.ui.Button(
-                    label="Unknown Enemy",
-                    style=discord.ButtonStyle.secondary,
-                    emoji="❓"
-                )
-                button.callback = lambda i, eid=enemy["id"]: self.start_combat(i, eid)
-                self.add_item(button)
-        
-        # Add cancel button
-        cancel_button = discord.ui.Button(
-            label="Cancel",
-            style=discord.ButtonStyle.secondary,
-            emoji=get_emoji_manager().get_status_emoji('error')
-        )
-        cancel_button.callback = self.cancel_combat
-        self.add_item(cancel_button)
-    
-    async def start_combat(self, interaction: discord.Interaction, enemy_id: str):
-        """Start combat with selected enemy"""
-        # Check if already in combat
-        if self.bot.get_combat(interaction.channel_id):
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} There's already an active combat in this channel!",
-            )
-            return
-        
-        # Load enemy data
-        enemy_data = data_loader.load_enemy(enemy_id)
-        if not enemy_data:
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Enemy data not found for **{enemy_id}**.",
-            )
-            return
-        
-        # Create enemy instance
-        from ...game.entities.enemy import Enemy, EnemyType, EnemyBehavior
-        
-        # Map enemy type from data to enum
-        enemy_type_map = {
-            "normal": EnemyType.NORMAL,
-            "mini_boss": EnemyType.MINIBOSS,
-            "boss": EnemyType.BOSS
-        }
-        
-        enemy_type = enemy_type_map.get(enemy_data.get('type', 'normal'), EnemyType.NORMAL)
-        
-        enemy_instance = Enemy(
-            name=enemy_data['name'],
-            enemy_type=enemy_type,
-            level=enemy_data['base_level'],
-            behavior=EnemyBehavior.AGGRESSIVE
-        )
-        
-        # Discover the enemy
-        self.player.discover_enemy(enemy_id)
-        
-        # Start combat
-        combat = Combat([self.player, enemy_instance])
-        self.bot.set_combat(interaction.channel_id, combat)
-        
-        # Create combat embed
-        embed = discord.Embed(
-            title=f"{get_emoji_manager().get_activity_emoji('combat')} Combat Started!",
-            description=f"**{self.player.name}** vs **{enemy_instance.name}**",
-            color=discord.Color.red()
-        )
-        
-        # Player stats
-        player_stats = f"**HP:** {self.player.get_stat(StatType.HEALTH)}/{self.player.get_stat(StatType.MAX_HEALTH)}\n**MP:** {self.player.get_stat(StatType.MANA)}/{self.player.get_stat(StatType.MAX_MANA)}"
-        embed.add_field(name=f"👤 {self.player.name}", value=player_stats, inline=True)
-        
-        # Enemy stats
-        enemy_stats = f"**HP:** {enemy_instance.get_stat(StatType.HEALTH)}/{enemy_instance.get_stat(StatType.MAX_HEALTH)}\n**Level:** {enemy_instance.level}"
-        embed.add_field(name=f"👹 {enemy_instance.name}", value=enemy_stats, inline=True)
-        
-        embed.add_field(
-            name="🎯 Actions",
-            value="Choose your action below!",
-            inline=False
-        )
-        
-        # Create combat view
-        view = CombatView(self.player, enemy_instance, self.bot)
-        
-        embed.set_footer(text="Combat is active! Choose your action.")
-        
-        await interaction.response.edit_message(embed=embed, view=view)
-    
-    async def cancel_combat(self, interaction: discord.Interaction):
-        """Cancel combat selection"""
-        embed = discord.Embed(
-            title=f"{get_emoji_manager().get_status_emoji('error')} Combat Cancelled",
-            description="You decided not to fight any enemies.",
-            color=discord.Color.gray()
-        )
-        
-        await interaction.response.edit_message(embed=embed, view=None)
 
 
 class CombatView(discord.ui.View):
     """View for combat actions"""
     
-    def __init__(self, player, enemy, bot):
+    def __init__(self, player, enemy, bot, enemy_id=None):
         super().__init__(timeout=60)
         self.player = player
         self.enemy = enemy
         self.bot = bot
+        self.enemy_id = enemy_id
     
-    @discord.ui.button(label="Attack", style=discord.ButtonStyle.danger, emoji=get_emoji_manager().get_ui_emoji('attack'))
+    @discord.ui.button(label="Attack", style=discord.ButtonStyle.danger, emoji=Emojis.ATTACK)
     async def attack_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Attack the enemy"""
         await self.perform_attack(interaction)
     
-    @discord.ui.button(label="Defend", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('defense'))
+    @discord.ui.button(label="Defend", style=discord.ButtonStyle.primary, emoji=Emojis.DEFENSE)
     async def defend_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Defend against enemy attack"""
         await self.perform_defend(interaction)
     
-    @discord.ui.button(label="Use Item", style=discord.ButtonStyle.secondary, emoji=get_emoji_manager().get_item_emoji('consumable'))
+    @discord.ui.button(label="Use Item", style=discord.ButtonStyle.secondary, emoji=Emojis.CONSUMABLE)
     async def use_item_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Use an item in combat"""
         await self.show_items(interaction)
     
-    @discord.ui.button(label="Flee", style=discord.ButtonStyle.secondary, emoji=get_emoji_manager().get_ui_emoji('speed'))
+    @discord.ui.button(label="Flee", style=discord.ButtonStyle.secondary, emoji=Emojis.SPEED)
     async def flee_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Flee from combat"""
         await self.perform_flee(interaction)
@@ -194,7 +50,7 @@ class CombatView(discord.ui.View):
         combat = self.bot.get_combat(interaction.channel_id)
         if not combat:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You're not in combat!",
+                f"{Emojis.ERROR} You're not in combat!",
             )
             return
         
@@ -208,7 +64,7 @@ class CombatView(discord.ui.View):
         
         # Create attack embed
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('attack')} Attack!",
+            title=f"{Emojis.ATTACK} Attack!",
             description=f"**{self.player.name}** attacks **{self.enemy.name}** for **{damage}** damage!",
             color=discord.Color.orange()
         )
@@ -216,7 +72,7 @@ class CombatView(discord.ui.View):
         # Check if enemy is defeated
         if not self.enemy.is_alive:
             embed.add_field(
-                name=f"{get_emoji_manager().get_effects_emoji('debuff')} Enemy Defeated!",
+                name=f"{Emojis.DEBUFF} Enemy Defeated!",
                 value=f"**{self.enemy.name}** has been defeated!",
                 inline=False
             )
@@ -273,14 +129,16 @@ class CombatView(discord.ui.View):
             self.bot.remove_combat(interaction.channel_id)
             
             # Add continue button
-            view = ContinueAfterCombatView(self.player, self.bot)
+            from .player import CharacterActionView
+            view = CharacterActionView(self.player, self.bot, show_enemies=True)
             
             embed.set_footer(text="Combat ended! Choose your next action.")
         else:
             # Show current health
+            enemy_emoji = self.enemy.emoji if self.enemy_id else "👹"
             embed.add_field(
                 name="💔 Enemy Health",
-                value=f"**{self.enemy.name}:** {self.enemy.get_stat(StatType.HEALTH)}/{self.enemy.get_stat(StatType.MAX_HEALTH)} HP",
+                value=f"**{enemy_emoji} {self.enemy.name}:** {self.enemy.get_stat(StatType.HEALTH)}/{self.enemy.get_stat(StatType.MAX_HEALTH)} HP",
                 inline=True
             )
             
@@ -290,7 +148,7 @@ class CombatView(discord.ui.View):
             # Check if player is defeated
             if not self.player.is_alive:
                 embed.add_field(
-                    name=f"{get_emoji_manager().get_effects_emoji('debuff')} Defeat!",
+                    name=f"{Emojis.DEBUFF} Defeat!",
                     value=f"**{self.player.name}** has been defeated!",
                     inline=False
                 )
@@ -302,7 +160,7 @@ class CombatView(discord.ui.View):
                 view = None
             else:
                 # Continue combat
-                view = CombatView(self.player, self.enemy, self.bot)
+                view = CombatView(self.player, self.enemy, self.bot, self.enemy_id)
                 embed.set_footer(text="Your turn! Choose your action.")
         
         await interaction.response.edit_message(embed=embed, view=view)
@@ -313,13 +171,13 @@ class CombatView(discord.ui.View):
         self.player.is_defending = True
         
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('defense')} Defend!",
+            title=f"{Emojis.DEFENSE} Defend!",
             description=f"**{self.player.name}** takes a defensive stance!",
             color=discord.Color.blue()
         )
         
         embed.add_field(
-            name=f"{get_emoji_manager().get_ui_emoji('defense')} Defense Active",
+            name=f"{Emojis.DEFENSE} Defense Active",
             value="You will take reduced damage from the next attack!",
             inline=False
         )
@@ -342,7 +200,7 @@ class CombatView(discord.ui.View):
             view = None
         else:
             # Continue combat
-            view = CombatView(self.player, self.enemy, self.bot)
+            view = CombatView(self.player, self.enemy, self.bot, self.enemy_id)
             embed.set_footer(text="Your turn! Choose your action.")
         
         await interaction.response.edit_message(embed=embed, view=view)
@@ -352,7 +210,7 @@ class CombatView(discord.ui.View):
         # Check if player has items
         if not self.player.inventory.items:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have any items to use!",
+                f"{Emojis.ERROR} You don't have any items to use!",
             )
             return
         
@@ -360,7 +218,7 @@ class CombatView(discord.ui.View):
         view = ItemSelectionView(self.player, self.enemy, self.bot)
         
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_item_emoji('consumable')} Use Item",
+            title=f"{Emojis.CONSUMABLE} Use Item",
             description="Select an item to use in combat:",
             color=discord.Color.purple()
         )
@@ -368,10 +226,13 @@ class CombatView(discord.ui.View):
         # Add item buttons
         for item_name, item_data in self.player.inventory.items.items():
             if item_data['quantity'] > 0:
+                # Get item emoji from item data
+                item_emoji = item_data.get('emoji', Emojis.MATERIAL)
+                
                 button = discord.ui.Button(
                     label=f"{item_name} x{item_data['quantity']}",
                     style=discord.ButtonStyle.secondary,
-                    emoji=get_emoji_manager().get_item_emoji('consumable')
+                    emoji=item_emoji
                 )
                 button.callback = lambda i, name=item_name: self.use_item(i, name)
                 view.add_item(button)
@@ -380,7 +241,7 @@ class CombatView(discord.ui.View):
         back_button = discord.ui.Button(
             label="Back to Combat",
             style=discord.ButtonStyle.secondary,
-            emoji=get_emoji_manager().get_ui_emoji('inspect')
+            emoji=Emojis.INSPECT
         )
         back_button.callback = self.back_to_combat
         view.add_item(back_button)
@@ -391,7 +252,7 @@ class CombatView(discord.ui.View):
         """Use selected item"""
         # This would implement item usage logic
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_item_emoji('consumable')} Item Used",
+            title=f"{Emojis.CONSUMABLE} Item Used",
             description=f"**{self.player.name}** used **{item_name}**!",
             color=discord.Color.purple()
         )
@@ -404,7 +265,7 @@ class CombatView(discord.ui.View):
         )
         
         # Continue combat
-        view = CombatView(self.player, self.enemy, self.bot)
+        view = CombatView(self.player, self.enemy, self.bot, self.enemy_id)
         embed.set_footer(text="Your turn! Choose your action.")
         
         await interaction.response.edit_message(embed=embed, view=view)
@@ -412,7 +273,7 @@ class CombatView(discord.ui.View):
     async def back_to_combat(self, interaction: discord.Interaction):
         """Return to combat view"""
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_activity_emoji('combat')} Combat",
+            title=f"{Emojis.ATTACK} Combat",
             description=f"**{self.player.name}** vs **{self.enemy.name}**",
             color=discord.Color.red()
         )
@@ -431,7 +292,7 @@ class CombatView(discord.ui.View):
             inline=False
         )
         
-        view = CombatView(self.player, self.enemy, self.bot)
+        view = CombatView(self.player, self.enemy, self.bot, self.enemy_id)
         embed.set_footer(text="Combat is active! Choose your action.")
         
         await interaction.response.edit_message(embed=embed, view=view)
@@ -442,7 +303,7 @@ class CombatView(discord.ui.View):
         self.bot.remove_combat(interaction.channel_id)
         
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('speed')} Fled!",
+            title=f"{Emojis.SPEED} Fled!",
             description=f"**{self.player.name}** has fled from combat!",
             color=discord.Color.yellow()
         )
@@ -482,108 +343,6 @@ class ItemSelectionView(discord.ui.View):
         self.bot = bot
 
 
-class ContinueAfterCombatView(discord.ui.View):
-    """View for actions after combat"""
-    
-    def __init__(self, player, bot):
-        super().__init__(timeout=60)
-        self.player = player
-        self.bot = bot
-    
-    @discord.ui.button(label="Continue Exploring", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('explore'))
-    async def continue_exploring(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Continue exploring after combat"""
-        # Get current region
-        region_manager = self.bot.region_manager
-        region_manager.set_current_region(self.player.current_region)
-        current_region = region_manager.get_current_region()
-        
-        if not current_region:
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error loading region data. Please try again later.",
-            )
-            return
-        
-        # Create exploration embed
-        embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('explore')} Exploring {current_region.name}",
-            description=current_region.description,
-            color=discord.Color.green()
-        )
-        
-        # Available activities
-        activities = current_region.available_activities
-        if activities:
-            activity_text = "\n".join([f"• {activity.title()}" for activity in activities])
-            embed.add_field(
-                name="🎯 Available Activities",
-                value=activity_text,
-                inline=True
-            )
-        
-        # Available enemies
-        enemies = current_region.get_available_enemies()
-        if enemies:
-            enemy_data = []
-            for enemy_id in enemies:
-                enemy = self.bot.region_manager.data_loader.load_enemy(enemy_id)
-                if enemy:
-                    enemy_data.append(f"• {enemy['name']} (Level {enemy['base_level']})")
-            
-            if enemy_data:
-                embed.add_field(
-                    name="👹 Enemies",
-                    value="\n".join(enemy_data),
-                    inline=True
-                )
-        
-        # Add activity selection
-        from .player import ActivitySelectionView
-        view = ActivitySelectionView(self.player, self.bot)
-        
-        embed.set_footer(text="Choose an activity to continue!")
-        
-        await interaction.response.edit_message(embed=embed, view=view)
-    
-    @discord.ui.button(label="View Character", style=discord.ButtonStyle.secondary, emoji=get_emoji_manager().get_ui_emoji('character'))
-    async def view_character(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """View character details"""
-        embed = self.create_character_embed()
-        await interaction.response.send_message(embed=embed, )
-    
-    def create_character_embed(self):
-        """Create character information embed"""
-        embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('character')} {self.player.name} - Level {self.player.level} {self.player.player_class.value.title()}",
-            color=discord.Color.blue()
-        )
-        
-        # Stats section
-        stats_text = f"""
-**Health:** {self.player.get_stat(StatType.HEALTH)}/{self.player.get_stat(StatType.MAX_HEALTH)} ({self.player.get_health_percentage():.1f}%)
-**Mana:** {self.player.get_stat(StatType.MANA)}/{self.player.get_stat(StatType.MAX_MANA)} ({self.player.get_mana_percentage():.1f}%)
-**Attack:** {self.player.get_stat(StatType.ATTACK)}
-**Defense:** {self.player.get_stat(StatType.DEFENSE)}
-**Speed:** {self.player.get_stat(StatType.SPEED)}
-        """.strip()
-        
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('stats')} Stats", value=stats_text, inline=True)
-        
-        # Equipment section
-        equipped_weapon = None
-        for slot, item in self.player.equipment.equipped_items.items():
-            if item is not None:
-                equipped_weapon = item
-                break
-        
-        equipment_text = f"**Weapon:** {equipped_weapon.name if equipped_weapon else 'None'}\n**Gold:** {self.player.gold}\n**Skill Points:** {self.player.skill_points}"
-        
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('equipment')} Equipment", value=equipment_text, inline=True)
-        
-        # Location section
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('location')} Location", value=f"**{self.player.current_region.title()}**", inline=True)
-        
-        return embed
 
 
 class CombatCog(commands.Cog):

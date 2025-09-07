@@ -10,7 +10,7 @@ import logging
 from typing import Optional
 from ..game import PlayerCreation, RegionManager, data_loader
 from ..game.enums import PlayerClass
-from ..utils.emoji_manager import set_bot
+# EmojiManager removed - using direct emoji properties now
 
 
 class PocketRPG(commands.Bot):
@@ -86,8 +86,7 @@ class PocketRPG(commands.Bot):
         self.logger.info(f"PocketRPG bot is ready! Logged in as {self.user}")
         self.logger.info(f"Bot is in {len(self.guilds)} guilds")
         
-        # Initialize emoji manager with bot instance
-        set_bot(self)
+        # EmojiManager removed - using direct emoji properties now
         
         # Set bot status
         activity = discord.Game(name="PocketRPG | /help")

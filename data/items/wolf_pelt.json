@@ -8,5 +8,6 @@
   "value": 8,
   "level_requirement": 1,
   "stackable": true,
-  "max_stack": 99
+  "max_stack": 99,
+  "emoji": "🐺"
 }

@@ -62,7 +62,8 @@ class PlayerCreation:
                 rarity=ItemRarity(fists_data["rarity"]),
                 quality=ItemQuality(fists_data["quality"]),
                 value=fists_data["value"],
-                level_requirement=fists_data["level_requirement"]
+                level_requirement=fists_data["level_requirement"],
+                emoji=fists_data.get("emoji", "👊")
             )
             
             # Set weapon stats

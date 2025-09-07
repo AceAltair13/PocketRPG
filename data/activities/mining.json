@@ -30,5 +30,6 @@
   "experience_reward": 10,
   "skill_requirements": {
     "mining": 0
-  }
+  },
+  "emoji": "⛏️"
 }

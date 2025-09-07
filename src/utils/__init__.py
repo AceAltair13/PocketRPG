@@ -2,10 +2,8 @@
 Utility functions and helpers for PocketRPG
 """
 
-from .emoji_manager import EmojiManager, get_emoji_manager, set_bot
+from .ui_emojis import UIEmojis
 
 __all__ = [
-    'EmojiManager',
-    'get_emoji_manager',
-    'set_bot'
+    'UIEmojis'
 ]

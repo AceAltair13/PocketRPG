@@ -20,5 +20,6 @@
   "stat_bonuses": {},
   "durability": 999,
   "max_durability": 999,
-  "slot": "weapon"
+  "slot": "weapon",
+  "emoji": "👊"
 }

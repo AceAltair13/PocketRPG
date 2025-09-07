@@ -8,7 +8,8 @@ from discord.ext import commands
 from discord import app_commands
 from ...game import PlayerCreation, PlayerClass
 from ...game.enums import StatType, EquipmentSlot
-from ...utils.emoji_manager import get_emoji_manager
+# UIEmojis no longer needed - using Emojis constants
+from ..utils import EmbedUtils, ResponseUtils, PlayerUtils, Emojis
 
 
 class CharacterCreationModal(discord.ui.Modal):
@@ -32,19 +33,16 @@ class CharacterCreationModal(discord.ui.Modal):
         user_id = interaction.user.id
         
         # Check if player already exists
-        if self.bot.get_player(user_id):
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You already have a character! Use `/character` to view your stats.",
-            )
+        can_create, error_msg = PlayerUtils.check_player_not_exists(self.bot, user_id)
+        if not can_create:
+            await ResponseUtils.send_error(interaction, error_msg, "Character Exists")
             return
         
         # Validate name
         name = self.name_input.value.strip()
-        is_valid, error = PlayerCreation.validate_player_name(name)
+        is_valid, error = PlayerUtils.validate_character_name(name)
         if not is_valid:
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Invalid character name: {error}",
-            )
+            await ResponseUtils.send_error(interaction, f"Invalid character name: {error}", "Invalid Name")
             return
         
         # Create class selection view
@@ -61,7 +59,7 @@ class CharacterCreationModal(discord.ui.Modal):
         for player_class in classes:
             description = PlayerCreation.get_class_description(player_class)
             embed.add_field(
-                name=f"{get_emoji_manager().get_ui_emoji('attack')} {player_class.value.title()}",
+                name=f"{Emojis.ATTACK} {player_class.value.title()}",
                 value=description,
                 inline=False
             )
@@ -78,19 +76,19 @@ class ClassSelectionView(discord.ui.View):
         self.character_name = character_name
         self.bot = bot
     
-    @discord.ui.button(label="Warrior", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('attack'))
+    @discord.ui.button(label="Warrior", style=discord.ButtonStyle.primary, emoji=Emojis.ATTACK)
     async def warrior_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.WARRIOR)
     
-    @discord.ui.button(label="Mage", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('mana'))
+    @discord.ui.button(label="Mage", style=discord.ButtonStyle.primary, emoji=Emojis.MANA)
     async def mage_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.MAGE)
     
-    @discord.ui.button(label="Rogue", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('speed'))
+    @discord.ui.button(label="Rogue", style=discord.ButtonStyle.primary, emoji=Emojis.SPEED)
     async def rogue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.ROGUE)
     
-    @discord.ui.button(label="Cleric", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('health'))
+    @discord.ui.button(label="Cleric", style=discord.ButtonStyle.primary, emoji=Emojis.HEALTH)
     async def cleric_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_character(interaction, PlayerClass.CLERIC)
     
@@ -105,10 +103,9 @@ class ClassSelectionView(discord.ui.View):
             self.bot.set_player(interaction.user.id, player)
             
             # Create success embed
-            embed = discord.Embed(
-                title=f"{get_emoji_manager().get_ui_emoji('character')} Character Created!",
-                description=f"Welcome to PocketRPG, **{self.character_name}**!",
-                color=discord.Color.green()
+            embed = EmbedUtils.create_success_embed(
+                f"Welcome to PocketRPG, **{self.character_name}**!",
+                "Character Created"
             )
             
             embed.add_field(
@@ -138,34 +135,44 @@ class ClassSelectionView(discord.ui.View):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error creating character: {str(e)}",
+                f"{Emojis.ERROR} Error creating character: {str(e)}",
             )
 
 
 class CharacterActionView(discord.ui.View):
-    """View with action buttons for new characters"""
+    """View with action buttons for character actions and continuing after activities"""
     
-    def __init__(self, player, bot):
+    def __init__(self, player, bot, show_enemies=False):
         super().__init__(timeout=300)
         self.player = player
         self.bot = bot
+        self.show_enemies = show_enemies
     
-    @discord.ui.button(label="View Character", style=discord.ButtonStyle.secondary, emoji=get_emoji_manager().get_ui_emoji('character'))
+    @discord.ui.button(label="View Character", style=discord.ButtonStyle.secondary, emoji=Emojis.CHARACTER)
     async def view_character(self, interaction: discord.Interaction, button: discord.ui.Button):
         """View character details"""
-        embed = self.create_character_embed()
+        embed = EmbedUtils.create_character_embed(self.player)
         await interaction.response.send_message(embed=embed, )
     
-    @discord.ui.button(label="Inventory", style=discord.ButtonStyle.secondary, emoji=get_emoji_manager().get_ui_emoji('inventory'))
+    @discord.ui.button(label="Inventory", style=discord.ButtonStyle.secondary, emoji=Emojis.INVENTORY)
     async def view_inventory(self, interaction: discord.Interaction, button: discord.ui.Button):
         """View inventory contents"""
-        embed = self.create_inventory_embed()
+        embed = EmbedUtils.create_inventory_embed(self.player)
         view = InventoryView(self.player, self.bot)
         await interaction.response.send_message(embed=embed, view=view)
     
-    @discord.ui.button(label="Explore", style=discord.ButtonStyle.success, emoji=get_emoji_manager().get_ui_emoji('explore'))
+    @discord.ui.button(label="Explore", style=discord.ButtonStyle.success, emoji=Emojis.EXPLORE)
     async def explore(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Start exploring"""
+        await self._show_exploration_view(interaction)
+    
+    @discord.ui.button(label="Continue Exploring", style=discord.ButtonStyle.primary, emoji=Emojis.EXPLORE)
+    async def continue_exploring(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Continue exploring after activity completion"""
+        await self._show_exploration_view(interaction)
+    
+    async def _show_exploration_view(self, interaction: discord.Interaction):
+        """Shared method to show exploration view"""
         # Get current region
         region_manager = self.bot.region_manager
         region_manager.set_current_region(self.player.current_region)
@@ -173,13 +180,13 @@ class CharacterActionView(discord.ui.View):
         
         if not current_region:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error loading region data. Please try again later.",
+                f"{Emojis.ERROR} Error loading region data. Please try again later.",
             )
             return
         
         # Create exploration embed
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('explore')} Exploring {current_region.name}",
+            title=f"{Emojis.EXPLORE} Exploring {current_region.name}",
             description=current_region.description,
             color=discord.Color.green()
         )
@@ -211,14 +218,10 @@ class CharacterActionView(discord.ui.View):
             enemy_data = []
             for enemy in enemies:
                 if enemy["discovered"]:
-                    # Show enemy type with emoji
-                    type_emoji = {
-                        "normal": "👹",
-                        "mini_boss": "🔥",
-                        "boss": "👑"
-                    }.get(enemy["type"], "👹")
+                    # Get enemy emoji from emoji manager
+                    enemy_emoji = enemy["data"]["emoji"] if enemy["data"] else "👹"
                     
-                    enemy_data.append(f"{type_emoji} {enemy['name']} (Level {enemy['level']})")
+                    enemy_data.append(f"{enemy_emoji} {enemy['name']} (Level {enemy['level']})")
                 else:
                     enemy_data.append(f"❓ Unknown Enemy")
             
@@ -235,121 +238,6 @@ class CharacterActionView(discord.ui.View):
         embed.set_footer(text="Choose an activity to get started!")
         
         await interaction.response.send_message(embed=embed, view=view)
-    
-    def create_character_embed(self):
-        """Create character information embed"""
-        embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('character')} {self.player.name} - Level {self.player.level} {self.player.player_class.value.title()}",
-            color=discord.Color.blue()
-        )
-        
-        # Stats section
-        stats_text = f"""
-**Health:** {self.player.get_stat(StatType.HEALTH)}/{self.player.get_stat(StatType.MAX_HEALTH)} ({self.player.get_health_percentage():.1f}%)
-**Mana:** {self.player.get_stat(StatType.MANA)}/{self.player.get_stat(StatType.MAX_MANA)} ({self.player.get_mana_percentage():.1f}%)
-**Attack:** {self.player.get_stat(StatType.ATTACK)}
-**Defense:** {self.player.get_stat(StatType.DEFENSE)}
-**Speed:** {self.player.get_stat(StatType.SPEED)}
-        """.strip()
-        
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('stats')} Stats", value=stats_text, inline=True)
-        
-        # Equipment section - show all slots
-        equipment_text = ""
-        
-        # Armor slots
-        armor_slots = {
-            EquipmentSlot.HEAD: "🪖 Head",
-            EquipmentSlot.BODY: f"{get_emoji_manager().get_ui_emoji('defense')} Body", 
-            EquipmentSlot.BOOTS: "👢 Boots"
-        }
-        
-        for slot, emoji_name in armor_slots.items():
-            item = self.player.equipment.get_equipped_item(slot)
-            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
-        
-        # Weapon slots
-        weapon_slots = {
-            EquipmentSlot.MAIN_HAND: f"{get_emoji_manager().get_ui_emoji('attack')} Main Hand",
-            EquipmentSlot.OFF_HAND: f"{get_emoji_manager().get_ui_emoji('attack')} Off-Hand"
-        }
-        
-        for slot, emoji_name in weapon_slots.items():
-            item = self.player.equipment.get_equipped_item(slot)
-            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
-        
-        # Accessory slots
-        accessory_slots = {
-            EquipmentSlot.ACCESSORY_1: f"{get_emoji_manager().get_item_emoji('accessory')} Accessory 1",
-            EquipmentSlot.ACCESSORY_2: f"{get_emoji_manager().get_item_emoji('accessory')} Accessory 2",
-            EquipmentSlot.ACCESSORY_3: f"{get_emoji_manager().get_item_emoji('accessory')} Accessory 3"
-        }
-        
-        for slot, emoji_name in accessory_slots.items():
-            item = self.player.equipment.get_equipped_item(slot)
-            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
-        
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('equipment')} Equipment", value=equipment_text, inline=False)
-        
-        # Additional info
-        info_text = f"**Gold:** {self.player.gold}\n**Skill Points:** {self.player.skill_points}"
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('gold')} Resources", value=info_text, inline=True)
-        
-        # Location section
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('location')} Location", value=f"**{self.player.current_region.title()}**", inline=True)
-        
-        return embed
-    
-    def create_inventory_embed(self):
-        """Create inventory display embed"""
-        emoji_mgr = get_emoji_manager()
-        embed = discord.Embed(
-            title=f"{emoji_mgr.get_ui_emoji('inventory')} {self.player.name}'s Inventory",
-            color=discord.Color.blue()
-        )
-        
-        # Get inventory items
-        inventory_items = self.player.inventory.items
-        
-        if not inventory_items:
-            embed.add_field(
-                name=f"{get_emoji_manager().get_ui_emoji('inventory')} Inventory",
-                value="Your inventory is empty.",
-                inline=False
-            )
-        else:
-            # Group items by type
-            items_by_type = {}
-            for item_name, item in inventory_items.items():
-                item_type = item.item_type.value.title()
-                if item_type not in items_by_type:
-                    items_by_type[item_type] = []
-                items_by_type[item_type].append((item, item.quantity))
-            
-            # Display items by type
-            for item_type, items in items_by_type.items():
-                item_text = ""
-                for item, quantity in items:
-                    # Add rarity emoji
-                    rarity_emoji = emoji_mgr.get_rarity_emoji(item.rarity.value)
-                    
-                    item_text += f"{rarity_emoji} **{item.name}** x{quantity}\n"
-                
-                embed.add_field(
-                    name=f"{get_emoji_manager().get_ui_emoji('inventory')} {item_type}",
-                    value=item_text.strip(),
-                    inline=True
-                )
-        
-        # Add inventory stats
-        total_items = sum(item.quantity for item in inventory_items.values())
-        embed.add_field(
-            name=f"{get_emoji_manager().get_ui_emoji('stats')} Inventory Stats",
-            value=f"**Total Items:** {total_items}\n**Slots Used:** {len(inventory_items)}/{self.player.inventory.max_capacity}",
-            inline=False
-        )
-        
-        return embed
 
 
 class InventoryView(discord.ui.View):
@@ -360,13 +248,13 @@ class InventoryView(discord.ui.View):
         self.player = player
         self.bot = bot
     
-    @discord.ui.button(label="Inspect Item", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('inspect'))
+    @discord.ui.button(label="Inspect Item", style=discord.ButtonStyle.primary, emoji=Emojis.INSPECT)
     async def inspect_item(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Open modal to inspect an item"""
         # Check if player has any items
         if not self.player.inventory.items:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Your inventory is empty! There's nothing to inspect.",
+                f"{Emojis.ERROR} Your inventory is empty! There's nothing to inspect.",
                 ephemeral=True
             )
             return
@@ -374,7 +262,7 @@ class InventoryView(discord.ui.View):
         # Create and show the inspect view
         view = ItemInspectView(self.player)
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('inspect')} Inspect Item",
+            title=f"{Emojis.INSPECT} Inspect Item",
             description="Select an item from your inventory to view its details:",
             color=discord.Color.blue()
         )
@@ -402,16 +290,11 @@ class ItemSelectDropdown(discord.ui.Select):
         # Add options for each item in inventory
         options = []
         for item_name, item in player.inventory.items.items():
-            # Add rarity emoji
-            rarity_emoji = {
-                "common": get_emoji_manager().get_rarity_emoji('common'),
-                "uncommon": get_emoji_manager().get_rarity_emoji('uncommon'), 
-                "rare": get_emoji_manager().get_rarity_emoji('rare'),
-                "epic": get_emoji_manager().get_rarity_emoji('epic'),
-                "legendary": get_emoji_manager().get_rarity_emoji('legendary')
-            }.get(item.rarity.value, get_emoji_manager().get_rarity_emoji('common'))
+            # Add item emoji (try specific item first, then fallback to item type)
+            # Use UIEmojis directly
+            item_emoji = item.emoji
             
-            label = f"{rarity_emoji} {item.name} x{item.quantity}"
+            label = f"{item_emoji} {item.name} x{item.quantity}"
             description = f"{item.item_type.value.title()} • {item.rarity.value.title()}"
             
             options.append(discord.SelectOption(
@@ -434,7 +317,7 @@ class ItemSelectDropdown(discord.ui.Select):
         
         if not item:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Item not found in inventory!",
+                f"{Emojis.ERROR} Item not found in inventory!",
                 ephemeral=True
             )
             return
@@ -457,17 +340,12 @@ class ItemSelectDropdown(discord.ui.Select):
         
         color = rarity_colors.get(item.rarity.value, discord.Color.light_grey())
         
-        # Get rarity emoji
-        rarity_emoji = {
-            "common": get_emoji_manager().get_rarity_emoji('common'),
-            "uncommon": get_emoji_manager().get_rarity_emoji('uncommon'), 
-            "rare": get_emoji_manager().get_rarity_emoji('rare'),
-            "epic": get_emoji_manager().get_rarity_emoji('epic'),
-            "legendary": get_emoji_manager().get_rarity_emoji('legendary')
-        }.get(item.rarity.value, get_emoji_manager().get_rarity_emoji('common'))
+        # Get item emoji (try specific item first, then fallback to item type)
+        # Use UIEmojis directly
+        item_emoji = item.emoji
         
         embed = discord.Embed(
-            title=f"{rarity_emoji} {item.name}",
+            title=f"{item_emoji} {item.name}",
             description=item.description or "No description available.",
             color=color
         )
@@ -519,7 +397,7 @@ class ItemSelectDropdown(discord.ui.Select):
             
             if effects_text:
                 embed.add_field(
-                    name=f"{get_emoji_manager().get_effects_emoji('buff')} Effects",
+                    name=f"{Emojis.BUFF} Effects",
                     value=effects_text.strip(),
                     inline=False
                 )
@@ -527,14 +405,14 @@ class ItemSelectDropdown(discord.ui.Select):
         # Equipment-specific details
         if hasattr(item, 'damage') and item.damage:
             embed.add_field(
-                name=f"{get_emoji_manager().get_ui_emoji('attack')} Weapon Stats",
+                name=f"{Emojis.ATTACK} Weapon Stats",
                 value=f"**Damage:** {item.damage}",
                 inline=True
             )
         
         if hasattr(item, 'defense') and item.defense:
             embed.add_field(
-                name=f"{get_emoji_manager().get_ui_emoji('defense')} Armor Stats",
+                name=f"{Emojis.DEFENSE} Armor Stats",
                 value=f"**Defense:** {item.defense}",
                 inline=True
             )
@@ -547,7 +425,7 @@ class ItemSelectDropdown(discord.ui.Select):
             
             if bonuses_text:
                 embed.add_field(
-                    name=f"{get_emoji_manager().get_ui_emoji('stats')} Stat Bonuses",
+                    name=f"{Emojis.STATS} Stat Bonuses",
                     value=bonuses_text.strip(),
                     inline=True
                 )
@@ -582,10 +460,10 @@ class ActivitySelectionView(discord.ui.View):
         
         # Activity button configurations
         activity_configs = {
-            "scout": {"label": "Scout", "style": discord.ButtonStyle.danger, "emoji": get_emoji_manager().get_ui_emoji('inspect')},
-            "foraging": {"label": "Foraging", "style": discord.ButtonStyle.success, "emoji": get_emoji_manager().get_activity_emoji('foraging')},
-            "farming": {"label": "Farming", "style": discord.ButtonStyle.success, "emoji": get_emoji_manager().get_activity_emoji('farming')},
-            "mining": {"label": "Mining", "style": discord.ButtonStyle.secondary, "emoji": get_emoji_manager().get_activity_emoji('mining')}
+            "scout": {"label": "Scout", "style": discord.ButtonStyle.danger, "emoji": Emojis.INSPECT},
+            "foraging": {"label": "Foraging", "style": discord.ButtonStyle.success, "emoji": Emojis.EXPLORE},
+            "farming": {"label": "Farming", "style": discord.ButtonStyle.success, "emoji": Emojis.EXPLORE},
+            "mining": {"label": "Mining", "style": discord.ButtonStyle.secondary, "emoji": Emojis.EXPLORE}
         }
         
         # Add buttons for unlocked activities
@@ -609,7 +487,7 @@ class ActivitySelectionView(discord.ui.View):
         
         if not current_region:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error loading region data. Please try again later.",
+                f"{Emojis.ERROR} Error loading region data. Please try again later.",
             )
             return
         
@@ -617,8 +495,8 @@ class ActivitySelectionView(discord.ui.View):
         if not self.player.has_activity_unlocked(activity.lower()):
             # Show placeholder message for locked activities
             placeholder_messages = {
-                "farming": f"{get_emoji_manager().get_activity_emoji('farming')} **Farming** will be coming soon! This will be a minigame where you can grow crops and harvest resources.",
-                "mining": f"{get_emoji_manager().get_activity_emoji('mining')} **Mining** will be coming soon! This will be a minigame where you can extract valuable minerals and ores."
+                "farming": f"{Emojis.EXPLORE} **Farming** will be coming soon! This will be a minigame where you can grow crops and harvest resources.",
+                "mining": f"{Emojis.EXPLORE} **Mining** will be coming soon! This will be a minigame where you can extract valuable minerals and ores."
             }
             
             message = placeholder_messages.get(activity.lower(), f"🔒 **{activity.title()}** is not yet available.")
@@ -642,7 +520,7 @@ class ActivitySelectionView(discord.ui.View):
         available_activities = current_region.available_activities
         if activity.lower() not in available_activities:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} **{activity.title()}** is not available in {current_region.name}."
+                f"{Emojis.ERROR} **{activity.title()}** is not available in {current_region.name}."
             )
             return
         
@@ -650,7 +528,7 @@ class ActivitySelectionView(discord.ui.View):
         activity_data = self.bot.region_manager.data_loader.load_activity(activity.lower())
         if not activity_data:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Activity data not found for **{activity.title()}**.",
+                f"{Emojis.ERROR} Activity data not found for **{activity.title()}**.",
             )
             return
         
@@ -658,7 +536,7 @@ class ActivitySelectionView(discord.ui.View):
         energy_cost = activity_data.get('energy_cost', 0)
         if self.player.get_stat(StatType.MANA) < energy_cost:  # Using mana as energy for now
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Not enough energy! You need {energy_cost} energy to perform **{activity.title()}**.",
+                f"{Emojis.ERROR} Not enough energy! You need {energy_cost} energy to perform **{activity.title()}**.",
             )
             return
         
@@ -688,20 +566,16 @@ class ActivitySelectionView(discord.ui.View):
                 
                 # Create encounter embed
                 embed = discord.Embed(
-                    title=f"{get_emoji_manager().get_activity_emoji('combat')} Enemy Encountered!",
+                    title=f"{Emojis.ATTACK} Enemy Encountered!",
                     description=f"**{self.player.name}** has encountered a **{enemy_data['name']}** while scouting!",
                     color=discord.Color.red()
                 )
                 
-                # Show enemy type with emoji
-                type_emoji = {
-                    "normal": "👹",
-                    "mini_boss": "🔥",
-                    "boss": "👑"
-                }.get(encounter_type, "👹")
+                # Get enemy emoji
+                enemy_emoji = encounter["enemy_data"]["emoji"] if encounter["enemy_data"] else "👹"
                 
                 embed.add_field(
-                    name=f"{type_emoji} Enemy Details",
+                    name=f"{enemy_emoji} Enemy Details",
                     value=f"**Name:** {enemy_data['name']}\n**Level:** {enemy_data['base_level']}\n**Type:** {encounter_type.title()}",
                     inline=True
                 )
@@ -722,7 +596,8 @@ class ActivitySelectionView(discord.ui.View):
                     name=enemy_data['name'],
                     enemy_type=enemy_type,
                     level=enemy_data['base_level'],
-                    behavior=EnemyBehavior.AGGRESSIVE
+                    behavior=EnemyBehavior.AGGRESSIVE,
+                    emoji=enemy_data.get('emoji', '👹')
                 )
                 
                 # Load loot table from enemy data
@@ -741,7 +616,7 @@ class ActivitySelectionView(discord.ui.View):
                 
                 # Add combat button
                 from .combat import CombatView
-                combat_view = CombatView(self.player, enemy_instance, self.bot)
+                combat_view = CombatView(self.player, enemy_instance, self.bot, encounter["enemy_id"])
                 embed.set_footer(text="Choose your action!")
                 
                 await interaction.followup.send(embed=embed, view=combat_view)
@@ -749,13 +624,13 @@ class ActivitySelectionView(discord.ui.View):
             else:
                 # No encounter
                 embed = discord.Embed(
-                    title=f"{get_emoji_manager().get_ui_emoji('inspect')} Scout Complete",
+                    title=f"{Emojis.INSPECT} Scout Complete",
                     description=f"**{self.player.name}** scouted the area but found no enemies.",
                     color=discord.Color.blue()
                 )
                 
                 embed.add_field(
-                    name=f"{get_emoji_manager().get_ui_emoji('stats')} Results",
+                    name=f"{Emojis.STATS} Results",
                     value=f"**Energy Used:** -{energy_cost}\n**Status:** Area is clear",
                     inline=True
                 )
@@ -789,7 +664,7 @@ class ActivitySelectionView(discord.ui.View):
             )
             
             embed.add_field(
-                name=f"{get_emoji_manager().get_ui_emoji('stats')} Energy Used",
+                name=f"{Emojis.STATS} Energy Used",
                 value=f"-{energy_cost}",
                 inline=True
             )
@@ -801,13 +676,13 @@ class ActivitySelectionView(discord.ui.View):
         # Check for level up
         if self.player.level > 1:  # Simple level up check
             embed.add_field(
-                name=f"{get_emoji_manager().get_status_emoji('complete')} Level Up!",
+                name=f"{Emojis.COMPLETE} Level Up!",
                 value=f"**{self.player.name}** is now level {self.player.level}!",
                 inline=True
             )
         
         # Add continue button
-        view = ContinueView(self.player, self.bot)
+        view = CharacterActionView(self.player, self.bot)
         
         embed.set_footer(text="Choose your next action!")
         
@@ -815,128 +690,13 @@ class ActivitySelectionView(discord.ui.View):
         await interaction.followup.send(embed=embed, view=view, )
 
 
-class ContinueView(discord.ui.View):
-    """View for continuing after activity completion"""
-    
-    def __init__(self, player, bot):
-        super().__init__(timeout=60)
-        self.player = player
-        self.bot = bot
-    
-    @discord.ui.button(label="Continue Exploring", style=discord.ButtonStyle.primary, emoji=get_emoji_manager().get_ui_emoji('explore'))
-    async def continue_exploring(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Continue exploring"""
-        # Get current region
-        region_manager = self.bot.region_manager
-        region_manager.set_current_region(self.player.current_region)
-        current_region = region_manager.get_current_region()
-        
-        if not current_region:
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error loading region data. Please try again later.",
-            )
-            return
-        
-        # Create exploration embed
-        embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('explore')} Exploring {current_region.name}",
-            description=current_region.description,
-            color=discord.Color.green()
-        )
-        
-        # Available activities
-        activities = current_region.available_activities
-        if activities:
-            activity_text = "\n".join([f"• {activity.title()}" for activity in activities])
-            embed.add_field(
-                name="🎯 Available Activities",
-                value=activity_text,
-                inline=True
-            )
-        
-        # Add activity selection
-        view = ActivitySelectionView(self.player, self.bot)
-        
-        embed.set_footer(text="Choose an activity to continue!")
-        
-        await interaction.response.edit_message(embed=embed, view=view)
-    
-    @discord.ui.button(label="View Character", style=discord.ButtonStyle.secondary, emoji=get_emoji_manager().get_ui_emoji('character'))
-    async def view_character(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """View character details"""
-        embed = self.create_character_embed()
-        await interaction.response.send_message(embed=embed, )
-    
-    def create_character_embed(self):
-        """Create character information embed"""
-        embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('character')} {self.player.name} - Level {self.player.level} {self.player.player_class.value.title()}",
-            color=discord.Color.blue()
-        )
-        
-        # Stats section
-        stats_text = f"""
-**Health:** {self.player.get_stat(StatType.HEALTH)}/{self.player.get_stat(StatType.MAX_HEALTH)} ({self.player.get_health_percentage():.1f}%)
-**Mana:** {self.player.get_stat(StatType.MANA)}/{self.player.get_stat(StatType.MAX_MANA)} ({self.player.get_mana_percentage():.1f}%)
-**Attack:** {self.player.get_stat(StatType.ATTACK)}
-**Defense:** {self.player.get_stat(StatType.DEFENSE)}
-**Speed:** {self.player.get_stat(StatType.SPEED)}
-        """.strip()
-        
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('stats')} Stats", value=stats_text, inline=True)
-        
-        # Equipment section - show all slots
-        equipment_text = ""
-        
-        # Armor slots
-        armor_slots = {
-            EquipmentSlot.HEAD: "🪖 Head",
-            EquipmentSlot.BODY: f"{get_emoji_manager().get_ui_emoji('defense')} Body", 
-            EquipmentSlot.BOOTS: "👢 Boots"
-        }
-        
-        for slot, emoji_name in armor_slots.items():
-            item = self.player.equipment.get_equipped_item(slot)
-            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
-        
-        # Weapon slots
-        weapon_slots = {
-            EquipmentSlot.MAIN_HAND: f"{get_emoji_manager().get_ui_emoji('attack')} Main Hand",
-            EquipmentSlot.OFF_HAND: f"{get_emoji_manager().get_ui_emoji('attack')} Off-Hand"
-        }
-        
-        for slot, emoji_name in weapon_slots.items():
-            item = self.player.equipment.get_equipped_item(slot)
-            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
-        
-        # Accessory slots
-        accessory_slots = {
-            EquipmentSlot.ACCESSORY_1: f"{get_emoji_manager().get_item_emoji('accessory')} Accessory 1",
-            EquipmentSlot.ACCESSORY_2: f"{get_emoji_manager().get_item_emoji('accessory')} Accessory 2",
-            EquipmentSlot.ACCESSORY_3: f"{get_emoji_manager().get_item_emoji('accessory')} Accessory 3"
-        }
-        
-        for slot, emoji_name in accessory_slots.items():
-            item = self.player.equipment.get_equipped_item(slot)
-            equipment_text += f"{emoji_name}: {item.name if item else 'Empty'}\n"
-        
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('equipment')} Equipment", value=equipment_text, inline=False)
-        
-        # Additional info
-        info_text = f"**Gold:** {self.player.gold}\n**Skill Points:** {self.player.skill_points}"
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('gold')} Resources", value=info_text, inline=True)
-        
-        # Location section
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('location')} Location", value=f"**{self.player.current_region.title()}**", inline=True)
-        
-        return embed
-
 
 class PlayerCog(commands.Cog):
     """Player management commands with interactive UI components"""
     
     def __init__(self, bot):
         self.bot = bot
+    
     
     @app_commands.command(name="create_character", description="Create a new character with interactive UI")
     async def create_character(self, interaction: discord.Interaction):
@@ -946,7 +706,7 @@ class PlayerCog(commands.Cog):
         # Check if player already exists
         if self.bot.get_player(user_id):
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You already have a character! Use `/character` to view your stats.",
+                f"{Emojis.ERROR} You already have a character! Use `/character` to view your stats.",
             )
             return
         
@@ -962,7 +722,7 @@ class PlayerCog(commands.Cog):
         
         if not player:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have a character yet! Use `/create_character` to create one.",
+                f"{Emojis.ERROR} You don't have a character yet! Use `/create_character` to create one.",
             )
             return
         
@@ -981,7 +741,7 @@ class PlayerCog(commands.Cog):
 **Speed:** {player.get_stat(StatType.SPEED)}
         """.strip()
         
-        embed.add_field(name=f"{get_emoji_manager().get_ui_emoji('stats')} Stats", value=stats_text, inline=True)
+        embed.add_field(name=f"{Emojis.STATS} Stats", value=stats_text, inline=True)
         
         # Equipment section
         equipped_weapon = None
@@ -1004,72 +764,18 @@ class PlayerCog(commands.Cog):
         
         await interaction.response.send_message(embed=embed, view=view, )
     
-    def _create_inventory_embed(self, player):
-        """Create inventory display embed"""
-        emoji_mgr = get_emoji_manager()
-        embed = discord.Embed(
-            title=f"{emoji_mgr.get_ui_emoji('inventory')} {player.name}'s Inventory",
-            color=discord.Color.blue()
-        )
-        
-        # Get inventory items
-        inventory_items = player.inventory.items
-        
-        if not inventory_items:
-            embed.add_field(
-                name=f"{get_emoji_manager().get_ui_emoji('inventory')} Inventory",
-                value="Your inventory is empty.",
-                inline=False
-            )
-        else:
-            # Group items by type
-            items_by_type = {}
-            for item_name, item in inventory_items.items():
-                item_type = item.item_type.value.title()
-                if item_type not in items_by_type:
-                    items_by_type[item_type] = []
-                items_by_type[item_type].append((item, item.quantity))
-            
-            # Display items by type
-            for item_type, items in items_by_type.items():
-                item_text = ""
-                for item, quantity in items:
-                    # Add rarity emoji
-                    rarity_emoji = emoji_mgr.get_rarity_emoji(item.rarity.value)
-                    
-                    item_text += f"{rarity_emoji} **{item.name}** x{quantity}\n"
-                
-                embed.add_field(
-                    name=f"{emoji_mgr.get_item_type_emoji(item_type.lower())} {item_type}",
-                    value=item_text.strip(),
-                    inline=True
-                )
-        
-        # Add inventory stats
-        total_items = sum(item.quantity for item in inventory_items.values())
-        embed.add_field(
-            name=f"{emoji_mgr.get_ui_emoji('stats')} Inventory Stats",
-            value=f"**Total Items:** {total_items}\n**Slots Used:** {len(inventory_items)}/{player.inventory.max_capacity}",
-            inline=False
-        )
-        
-        return embed
     
     @app_commands.command(name="inventory", description="View your inventory and inspect items")
     async def inventory(self, interaction: discord.Interaction):
         """View inventory contents with inspect functionality"""
         user_id = interaction.user.id
-        player = self.bot.get_player(user_id)
-        
+        player, error_msg = PlayerUtils.get_player_or_error(self.bot, user_id)
         if not player:
-            await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have a character yet! Use `/create_character` to create one.",
-                ephemeral=True
-            )
+            await ResponseUtils.send_error(interaction, error_msg, "No Character")
             return
         
         # Create inventory embed
-        embed = self._create_inventory_embed(player)
+        embed = EmbedUtils.create_inventory_embed(player)
         view = InventoryView(player, self.bot)
         
         await interaction.response.send_message(embed=embed, view=view)

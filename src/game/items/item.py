@@ -19,7 +19,7 @@ class Item(ABC, SerializableMixin, StringRepresentationMixin):
     
     def __init__(self, name: str, item_type: ItemType, description: str = "",
                  rarity: ItemRarity = ItemRarity.COMMON, quality: ItemQuality = ItemQuality.NORMAL,
-                 value: int = 0, stackable: bool = False, max_stack: int = 1):
+                 value: int = 0, stackable: bool = False, max_stack: int = 1, emoji: str = "❓"):
         self.name: str = name
         self.item_type: ItemType = item_type
         self.description: str = description
@@ -29,6 +29,7 @@ class Item(ABC, SerializableMixin, StringRepresentationMixin):
         self.stackable: bool = stackable
         self.max_stack: int = max_stack
         self.quantity: int = 1
+        self.emoji: str = emoji  # Emoji for this item
         
         # Item properties
         self.level_requirement: int = 1
@@ -132,8 +133,8 @@ class ConsumableItem(Item):
     """
     
     def __init__(self, name: str, description: str = "", rarity: ItemRarity = ItemRarity.COMMON,
-                 quality: ItemQuality = ItemQuality.NORMAL, value: int = 0, max_stack: int = 99):
-        super().__init__(name, ItemType.CONSUMABLE, description, rarity, quality, value, True, max_stack)
+                 quality: ItemQuality = ItemQuality.NORMAL, value: int = 0, max_stack: int = 99, emoji: str = "❓"):
+        super().__init__(name, ItemType.CONSUMABLE, description, rarity, quality, value, True, max_stack, emoji)
         
         # Consumable-specific properties
         self.effects: List[Dict[str, Any]] = []  # List of effects to apply
@@ -198,8 +199,8 @@ class EquipmentItem(Item):
     
     def __init__(self, name: str, item_type: ItemType, description: str = "",
                  rarity: ItemRarity = ItemRarity.COMMON, quality: ItemQuality = ItemQuality.NORMAL,
-                 value: int = 0, level_requirement: int = 1):
-        super().__init__(name, item_type, description, rarity, quality, value, False, 1)
+                 value: int = 0, level_requirement: int = 1, emoji: str = "❓"):
+        super().__init__(name, item_type, description, rarity, quality, value, False, 1, emoji)
         self.level_requirement = level_requirement
         
         # Equipment-specific properties
@@ -247,8 +248,8 @@ class WeaponItem(EquipmentItem):
     """
     
     def __init__(self, name: str, description: str = "", rarity: ItemRarity = ItemRarity.COMMON,
-                 quality: ItemQuality = ItemQuality.NORMAL, value: int = 0, level_requirement: int = 1):
-        super().__init__(name, ItemType.WEAPON, description, rarity, quality, value, level_requirement)
+                 quality: ItemQuality = ItemQuality.NORMAL, value: int = 0, level_requirement: int = 1, emoji: str = "❓"):
+        super().__init__(name, ItemType.WEAPON, description, rarity, quality, value, level_requirement, emoji)
         self.slot = "weapon"
         
         # Weapon-specific properties
@@ -283,8 +284,8 @@ class ArmorItem(EquipmentItem):
     
     def __init__(self, name: str, armor_type: str, description: str = "",
                  rarity: ItemRarity = ItemRarity.COMMON, quality: ItemQuality = ItemQuality.NORMAL,
-                 value: int = 0, level_requirement: int = 1):
-        super().__init__(name, ItemType.ARMOR, description, rarity, quality, value, level_requirement)
+                 value: int = 0, level_requirement: int = 1, emoji: str = "❓"):
+        super().__init__(name, ItemType.ARMOR, description, rarity, quality, value, level_requirement, emoji)
         self.slot = armor_type
         
         # Armor-specific properties
@@ -334,7 +335,8 @@ class CommonItems:
             rarity=ItemRarity.COMMON,
             quality=quality,
             value=10,
-            max_stack=99
+            max_stack=99,
+            emoji="🧪"
         )
         potion.add_effect('heal', 50)
         return potion
@@ -348,7 +350,8 @@ class CommonItems:
             rarity=ItemRarity.COMMON,
             quality=quality,
             value=10,
-            max_stack=99
+            max_stack=99,
+            emoji="🧪"
         )
         potion.add_effect('mana_restore', 30)
         return potion
@@ -362,7 +365,8 @@ class CommonItems:
             rarity=ItemRarity.COMMON,
             quality=quality,
             value=50,
-            level_requirement=1
+            level_requirement=1,
+            emoji="⚔️"
         )
         sword.damage = 15
         sword.add_stat_bonus('attack', 5)
@@ -378,7 +382,8 @@ class CommonItems:
             rarity=ItemRarity.COMMON,
             quality=quality,
             value=30,
-            level_requirement=1
+            level_requirement=1,
+            emoji="🛡️"
         )
         armor.defense = 8
         armor.add_stat_bonus('defense', 3)

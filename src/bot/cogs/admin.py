@@ -6,7 +6,8 @@ Handles administrative functions and bot management
 import discord
 from discord.ext import commands
 from discord import app_commands
-from ...utils.emoji_manager import get_emoji_manager
+# UIEmojis no longer needed - using Emojis constants
+from ..utils import Emojis
 
 
 class AdminCog(commands.Cog):
@@ -19,7 +20,7 @@ class AdminCog(commands.Cog):
     async def ping(self, interaction: discord.Interaction):
         """Simple ping command for testing"""
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('ping')} Pong!",
+            title=f"{Emojis.STATS} Pong!",
             description=f"Bot latency: {round(self.bot.latency * 1000)}ms",
             color=discord.Color.green()
         )
@@ -31,7 +32,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin (simplified check)
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                f"{Emojis.ERROR} You don't have permission to use this command!",
             )
             return
         
@@ -41,7 +42,7 @@ class AdminCog(commands.Cog):
         total_guilds = len(self.bot.guilds)
         
         embed = discord.Embed(
-            title=f"{get_emoji_manager().get_ui_emoji('stats')} Bot Statistics",
+            title=f"{Emojis.STATS} Bot Statistics",
             color=discord.Color.blue()
         )
         
@@ -58,7 +59,7 @@ class AdminCog(commands.Cog):
         )
         
         embed.add_field(
-            name=f"{get_emoji_manager().get_ui_emoji('character')} Game Data",
+            name=f"{Emojis.CHARACTER} Game Data",
             value=f"**Regions:** {len(self.bot.region_manager.get_available_regions())}\n**Activities:** {len(self.bot.region_manager.data_loader.list_activities())}",
             inline=True
         )
@@ -73,7 +74,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                f"{Emojis.ERROR} You don't have permission to use this command!",
             )
             return
         
@@ -88,7 +89,7 @@ class AdminCog(commands.Cog):
             )
             
             embed.add_field(
-                name=f"{get_emoji_manager().get_ui_emoji('stats')} Reloaded Data",
+                name=f"{Emojis.STATS} Reloaded Data",
                 value=f"**Regions:** {len(self.bot.region_manager.data_loader.list_regions())}\n**Activities:** {len(self.bot.region_manager.data_loader.list_activities())}\n**Items:** {len(self.bot.region_manager.data_loader.list_items())}\n**Enemies:** {len(self.bot.region_manager.data_loader.list_enemies())}",
                 inline=False
             )
@@ -97,7 +98,7 @@ class AdminCog(commands.Cog):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error reloading data: {str(e)}",
+                f"{Emojis.ERROR} Error reloading data: {str(e)}",
             )
     
     @app_commands.command(name="admin_clear_combats", description="Clear all active combats (Admin only)")
@@ -106,7 +107,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                f"{Emojis.ERROR} You don't have permission to use this command!",
             )
             return
         
@@ -128,7 +129,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                f"{Emojis.ERROR} You don't have permission to use this command!",
             )
             return
         
@@ -150,7 +151,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                f"{Emojis.ERROR} You don't have permission to use this command!",
             )
             return
         
@@ -176,7 +177,7 @@ class AdminCog(commands.Cog):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error syncing commands: {str(e)}",
+                f"{Emojis.ERROR} Error syncing commands: {str(e)}",
             )
     
     @app_commands.command(name="admin_sync_global", description="Sync slash commands to ALL servers (Admin only)")
@@ -185,7 +186,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                f"{Emojis.ERROR} You don't have permission to use this command!",
                 ephemeral=True
             )
             return
@@ -218,7 +219,7 @@ class AdminCog(commands.Cog):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error syncing commands globally: {str(e)}",
+                f"{Emojis.ERROR} Error syncing commands globally: {str(e)}",
                 ephemeral=True
             )
     
@@ -228,7 +229,7 @@ class AdminCog(commands.Cog):
         # Check if user is admin
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} You don't have permission to use this command!",
+                f"{Emojis.ERROR} You don't have permission to use this command!",
             )
             return
         
@@ -253,7 +254,7 @@ class AdminCog(commands.Cog):
             
         except Exception as e:
             await interaction.response.send_message(
-                f"{get_emoji_manager().get_status_emoji('error')} Error clearing commands: {str(e)}",
+                f"{Emojis.ERROR} Error clearing commands: {str(e)}",
             )
 
 

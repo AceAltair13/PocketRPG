@@ -15,12 +15,13 @@ class Enemy(Entity):
     """
     
     def __init__(self, name: str, enemy_type: EnemyType, level: int = 1, 
-                 behavior: EnemyBehavior = EnemyBehavior.BALANCED):
+                 behavior: EnemyBehavior = EnemyBehavior.BALANCED, emoji: str = "👹"):
         # Initialize as enemy entity type
         super().__init__(name, EntityType.ENEMY, level)
         
         self.enemy_type: EnemyType = enemy_type
         self.behavior: EnemyBehavior = behavior
+        self.emoji: str = emoji  # Emoji for this enemy
         
         # Enemy-specific attributes
         self.experience_reward: int = 0
