@@ -251,16 +251,9 @@ class Equipment:
             slot_name = slot_names.get(slot, slot.value)
             if item is not None:
                 # Get item emoji (try specific item first, then fallback to item type)
-                try:
-                    from ...utils.emoji_manager import get_emoji_manager
-                    emoji_mgr = get_emoji_manager()
-                    item_emoji = emoji_mgr.get_specific_item_emoji(item.id)
-                    if item_emoji == '❓':  # If specific item not found, use item type
-                        item_emoji = emoji_mgr.get_item_type_emoji(item.item_type.value)
-                    lines.append(f"  {slot_name}: {item_emoji} {item.get_display_name()}")
-                except ImportError:
-                    # Fallback if emoji manager not available
-                    lines.append(f"  {slot_name}: {item.get_display_name()}")
+                # Use item's emoji property directly
+                item_emoji = getattr(item, 'emoji', '❓')
+                lines.append(f"  {slot_name}: {item_emoji} {item.get_display_name()}")
             else:
                 lines.append(f"  {slot_name}: [Empty]")
         

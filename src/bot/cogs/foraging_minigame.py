@@ -129,7 +129,7 @@ class ForagingMinigameView(discord.ui.View):
         grid_desc = self._get_grid_description()
         
         embed = discord.Embed(
-            title=f"{emoji_mgr.get_activity_emoji('foraging')} Foraging Minigame (Level {self.foraging_level})",
+            title=f"{Emojis.EXPLORE} Foraging Minigame (Level {self.foraging_level})",
             description=f"Find the hidden plants and herbs! {grid_desc}",
             color=discord.Color.green()
         )
@@ -211,11 +211,8 @@ class ForagingMinigameView(discord.ui.View):
         else:
             found_items_with_emojis = []
             for item_name in self.found_items:
-                # Get item emoji
-                # Use UIEmojis directly
-                item_emoji = emoji_mgr.get_specific_item_emoji(item_name)
-                if item_emoji == '❓':  # If specific item not found, use item type
-                    item_emoji = emoji_mgr.get_item_type_emoji('material')  # Default to material
+                # Use material emoji as default for foraging items
+                item_emoji = Emojis.MATERIAL
                 found_items_with_emojis.append(f"• {item_emoji} {item_name}")
             found_text = "\n".join(found_items_with_emojis)
         self.embed.add_field(
