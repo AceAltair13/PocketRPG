@@ -1,0 +1,13 @@
+{
+  "id": "werewolf_fang",
+  "name": "Werewolf Fang",
+  "description": "A massive, razor-sharp fang from a werewolf. Contains traces of lycanthropic essence and is perfect for crafting cursed weapons.",
+  "type": "material",
+  "rarity": "rare",
+  "quality": "normal",
+  "value": 35,
+  "level_requirement": 3,
+  "stackable": true,
+  "max_stack": 50,
+  "emoji": "<:werewolf_fang:1414089175984242829>"
+}

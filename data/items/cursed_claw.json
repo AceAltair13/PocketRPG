@@ -1,0 +1,13 @@
+{
+  "id": "cursed_claw",
+  "name": "Cursed Claw",
+  "description": "A twisted claw that drips with dark magic. The curse within makes it valuable for forbidden rituals and dark enchantments.",
+  "type": "material",
+  "rarity": "epic",
+  "quality": "normal",
+  "value": 60,
+  "level_requirement": 4,
+  "stackable": true,
+  "max_stack": 25,
+  "emoji": "<:werewolf_cursed_claw:1414089167893434381>"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "werewolf_pelt",
+  "name": "Werewolf Pelt",
+  "description": "A thick, coarse pelt from a cursed werewolf. Radiates dark energy and is highly sought after by alchemists.",
+  "type": "material",
+  "rarity": "rare",
+  "quality": "normal",
+  "value": 25,
+  "level_requirement": 3,
+  "stackable": true,
+  "max_stack": 50,
+  "emoji": "<:werewolf_pelt:1414089193482879146>"
+}

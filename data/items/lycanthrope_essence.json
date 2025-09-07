@@ -1,0 +1,13 @@
+{
+  "id": "lycanthrope_essence",
+  "name": "Lycanthrope Essence",
+  "description": "A vial containing the concentrated essence of lycanthropy. Extremely rare and powerful, used in the most advanced alchemical experiments.",
+  "type": "material",
+  "rarity": "legendary",
+  "quality": "normal",
+  "value": 150,
+  "level_requirement": 5,
+  "stackable": true,
+  "max_stack": 10,
+  "emoji": "<:werewolf_lycanthrope_essence:1414089184351883325>"
+}
