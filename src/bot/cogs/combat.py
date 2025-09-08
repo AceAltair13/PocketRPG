@@ -24,6 +24,35 @@ class CombatView(discord.ui.View):
         self.bot = bot
         self.enemy_id = enemy_id
     
+    @staticmethod
+    def _health_bar(current: int, maximum: int, length: int = 12) -> str:
+        current = max(0, min(current, maximum))
+        filled = int(round(length * (current / maximum))) if maximum > 0 else 0
+        empty = max(0, length - filled)
+        return f"[{'█' * filled}{'—' * empty}]"
+
+    def _append_health_fields(self, embed: discord.Embed) -> None:
+        """Append single set of player/enemy HP fields with bars to the embed."""
+        player_hp = self.player.get_stat(StatType.HEALTH)
+        player_hp_max = self.player.get_stat(StatType.MAX_HEALTH)
+        enemy_hp = self.enemy.get_stat(StatType.HEALTH)
+        enemy_hp_max = self.enemy.get_stat(StatType.MAX_HEALTH)
+
+        player_bar = self._health_bar(player_hp, player_hp_max)
+        enemy_bar = self._health_bar(enemy_hp, enemy_hp_max)
+
+        embed.add_field(
+            name=f"👤 {self.player.name} HP",
+            value=f"{player_hp}/{player_hp_max} {player_bar}\nEN: {self.player.get_stat(StatType.ENERGY)}/{self.player.get_stat(StatType.MAX_ENERGY)}",
+            inline=True
+        )
+        enemy_emoji = self.enemy.emoji if self.enemy_id else "👹"
+        embed.add_field(
+            name=f"{enemy_emoji} {self.enemy.name} HP",
+            value=f"{enemy_hp}/{enemy_hp_max} {enemy_bar}",
+            inline=True
+        )
+    
     @discord.ui.button(label="Attack", style=discord.ButtonStyle.danger, emoji=Emojis.ATTACK)
     async def attack_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Attack the enemy"""
@@ -172,15 +201,7 @@ class CombatView(discord.ui.View):
             
             embed.set_footer(text="Combat ended! Choose your next action.")
         else:
-            # Show current health
-            enemy_emoji = self.enemy.emoji if self.enemy_id else "👹"
-            embed.add_field(
-                name="💔 Enemy Health",
-                value=f"**{enemy_emoji} {self.enemy.name}:** {self.enemy.get_stat(StatType.HEALTH)}/{self.enemy.get_stat(StatType.MAX_HEALTH)} HP",
-                inline=True
-            )
-            
-            # Enemy's turn
+            # Enemy's turn (enemy_turn will append health bars once)
             await self.enemy_turn(embed)
             
             # Check if player is defeated
@@ -261,18 +282,16 @@ class CombatView(discord.ui.View):
             color=discord.Color.purple()
         )
         
-        # Add item buttons
-        for item_name, item_data in self.player.inventory.items.items():
-            if item_data['quantity'] > 0:
-                # Get item emoji from item data
-                item_emoji = item_data.get('emoji', Emojis.MATERIAL)
-                
+        # Add item buttons (iterate actual Item objects)
+        for item in self.player.inventory.get_all_items():
+            if getattr(item, 'quantity', 0) > 0:
+                item_emoji = getattr(item, 'emoji', Emojis.MATERIAL)
                 button = discord.ui.Button(
-                    label=f"{item_name} x{item_data['quantity']}",
+                    label=f"{item.name} x{item.quantity}",
                     style=discord.ButtonStyle.secondary,
                     emoji=item_emoji
                 )
-                button.callback = lambda i, name=item_name: self.use_item(i, name)
+                button.callback = (lambda i, name=item.name: self.use_item(i, name))
                 view.add_item(button)
         
         # Add back button
@@ -323,13 +342,9 @@ class CombatView(discord.ui.View):
             if emoji_url:
                 embed.set_thumbnail(url=emoji_url)
         
-        # Player stats
-        player_stats = f"**HP:** {self.player.get_stat(StatType.HEALTH)}/{self.player.get_stat(StatType.MAX_HEALTH)}\n**MP:** {self.player.get_stat(StatType.MANA)}/{self.player.get_stat(StatType.MAX_MANA)}"
-        embed.add_field(name=f"👤 {self.player.name}", value=player_stats, inline=True)
-        
-        # Enemy stats
-        enemy_stats = f"**HP:** {self.enemy.get_stat(StatType.HEALTH)}/{self.enemy.get_stat(StatType.MAX_HEALTH)}\n**Level:** {self.enemy.level}"
-        embed.add_field(name=f"👹 {self.enemy.name}", value=enemy_stats, inline=True)
+        # Player and enemy health with bars
+        self._append_health_fields(embed)
+        embed.add_field(name="Level", value=f"{self.enemy.level}", inline=True)
         
         embed.add_field(
             name="🎯 Actions",
@@ -376,6 +391,9 @@ class CombatView(discord.ui.View):
             value=f"**{self.enemy.name}** attacks **{self.player.name}** for **{damage}** damage!",
             inline=False
         )
+
+        # Append current HP bars once after damage
+        self._append_health_fields(embed)
 
 
 class ItemSelectionView(discord.ui.View):

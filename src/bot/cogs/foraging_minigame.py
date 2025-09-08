@@ -352,7 +352,7 @@ class ForagingMinigameView(discord.ui.View):
         
         # Consume energy
         energy_cost = self.activity_data.get('energy_cost', 0)
-        self.player.modify_stat(StatType.MANA, -energy_cost)
+        self.player.modify_stat(StatType.ENERGY, -energy_cost)
         
         # Store level up info for messages
         self.player_leveled_up = leveled_up

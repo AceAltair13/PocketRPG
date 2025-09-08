@@ -42,8 +42,8 @@ class Enemy(Entity):
         self.stats.update({
             StatType.HEALTH: 80,
             StatType.MAX_HEALTH: 80,
-            StatType.MANA: 40,
-            StatType.MAX_MANA: 40,
+            StatType.ENERGY: 40,
+            StatType.MAX_ENERGY: 40,
             StatType.ATTACK: 8,
             StatType.DEFENSE: 4,
             StatType.SPEED: 8,
@@ -107,7 +107,7 @@ class Enemy(Entity):
         """Apply level up bonuses for enemies"""
         # Enemies get smaller bonuses than players
         self.modify_stat(StatType.MAX_HEALTH, 8)
-        self.modify_stat(StatType.MAX_MANA, 3)
+        self.modify_stat(StatType.MAX_ENERGY, 3)
         self.modify_stat(StatType.ATTACK, 1)
         self.modify_stat(StatType.DEFENSE, 1)
         self.modify_stat(StatType.SPEED, 1)
@@ -115,8 +115,10 @@ class Enemy(Entity):
         # Update rewards
         self._set_rewards()
     
-    def add_loot_item(self, item_name: str, drop_chance: float, quantity: int = 1) -> None:
-        """Add an item to the enemy's loot table"""
+    def add_loot_item(self, item_name: str, drop_chance: float, quantity: Any = 1) -> None:
+        """Add an item to the enemy's loot table.
+        quantity can be an int or a [min, max] list/tuple.
+        """
         self.loot_table.append({
             'item_name': item_name,
             'drop_chance': drop_chance,
@@ -130,10 +132,17 @@ class Enemy(Entity):
         
         for loot_entry in self.loot_table:
             if random.random() < loot_entry['drop_chance']:
-                dropped_items.append({
-                    'item_name': loot_entry['item_name'],
-                    'quantity': loot_entry['quantity']
-                })
+                qty_spec = loot_entry['quantity']
+                if isinstance(qty_spec, (list, tuple)) and len(qty_spec) == 2:
+                    qty_min, qty_max = int(qty_spec[0]), int(qty_spec[1])
+                    quantity = random.randint(min(qty_min, qty_max), max(qty_min, qty_max))
+                else:
+                    quantity = int(qty_spec)
+                if quantity > 0:
+                    dropped_items.append({
+                        'item_name': loot_entry['item_name'],
+                        'quantity': quantity
+                    })
         
         return dropped_items
     
@@ -169,7 +178,7 @@ class Enemy(Entity):
             actions.append("area_attack")
         
         # Add healing if enemy has mana
-        if self.get_stat(StatType.MANA) > 10:
+        if self.get_stat(StatType.ENERGY) > 10:
             actions.append("heal")
         
         return actions

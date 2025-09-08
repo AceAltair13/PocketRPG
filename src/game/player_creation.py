@@ -33,7 +33,7 @@ class PlayerCreation:
         # Set default stats (these are already set in Player.__init__)
         # But we can customize them here if needed
         player.set_stat(StatType.HEALTH, player.get_stat(StatType.MAX_HEALTH))
-        player.set_stat(StatType.MANA, player.get_stat(StatType.MAX_MANA))
+        player.set_stat(StatType.ENERGY, player.get_stat(StatType.MAX_ENERGY))
         
         # Give starting equipment (bare fists)
         PlayerCreation._give_starting_equipment(player)

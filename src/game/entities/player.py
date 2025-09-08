@@ -59,8 +59,8 @@ class Player(Entity):
         self.stats.update({
             StatType.HEALTH: 120,
             StatType.MAX_HEALTH: 120,
-            StatType.MANA: 60,
-            StatType.MAX_MANA: 60,
+            StatType.ENERGY: 60,
+            StatType.MAX_ENERGY: 60,
             StatType.ATTACK: 12,
             StatType.DEFENSE: 8,
             StatType.SPEED: 10,
@@ -77,8 +77,8 @@ class Player(Entity):
                 StatType.DEFENSE: 3
             },
             PlayerClass.MAGE: {
-                StatType.MANA: 40,
-                StatType.MAX_MANA: 40,
+                StatType.ENERGY: 40,
+                StatType.MAX_ENERGY: 40,
                 StatType.ATTACK: 3,
                 StatType.SPEED: 2
             },
@@ -90,8 +90,8 @@ class Player(Entity):
             PlayerClass.CLERIC: {
                 StatType.HEALTH: 20,
                 StatType.MAX_HEALTH: 20,
-                StatType.MANA: 30,
-                StatType.MAX_MANA: 30,
+                StatType.ENERGY: 30,
+                StatType.MAX_ENERGY: 30,
                 StatType.DEFENSE: 2
             }
         }
@@ -106,7 +106,7 @@ class Player(Entity):
         """Apply level up bonuses based on player class"""
         # Base level up bonuses
         self.modify_stat(StatType.MAX_HEALTH, 10)
-        self.modify_stat(StatType.MAX_MANA, 5)
+        self.modify_stat(StatType.MAX_ENERGY, 5)
         self.modify_stat(StatType.ATTACK, 2)
         self.modify_stat(StatType.DEFENSE, 1)
         self.modify_stat(StatType.SPEED, 1)
@@ -119,7 +119,7 @@ class Player(Entity):
                 StatType.DEFENSE: 2
             },
             PlayerClass.MAGE: {
-                StatType.MAX_MANA: 10,
+                StatType.MAX_ENERGY: 10,
                 StatType.ATTACK: 3,
                 StatType.SPEED: 1
             },
@@ -130,7 +130,7 @@ class Player(Entity):
             },
             PlayerClass.CLERIC: {
                 StatType.MAX_HEALTH: 12,
-                StatType.MAX_MANA: 8,
+                StatType.MAX_ENERGY: 8,
                 StatType.DEFENSE: 2
             }
         }

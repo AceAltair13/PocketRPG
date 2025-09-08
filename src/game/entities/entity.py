@@ -28,8 +28,8 @@ class Entity(ABC, SerializableMixin, StringRepresentationMixin):
         self.stats: Dict[StatType, int] = {
             StatType.HEALTH: 100,
             StatType.MAX_HEALTH: 100,
-            StatType.MANA: 50,
-            StatType.MAX_MANA: 50,
+            StatType.ENERGY: 50,
+            StatType.MAX_ENERGY: 50,
             StatType.ATTACK: 10,
             StatType.DEFENSE: 5,
             StatType.SPEED: 10,
@@ -110,14 +110,18 @@ class Entity(ABC, SerializableMixin, StringRepresentationMixin):
         self.set_stat(StatType.HEALTH, current_health + actual_healing)
         return actual_healing
     
-    def restore_mana(self, amount: int) -> int:
-        """Restore mana and return actual mana restored"""
-        current_mana = self.get_stat(StatType.MANA)
-        max_mana = self.get_stat(StatType.MAX_MANA)
-        actual_restoration = min(amount, max_mana - current_mana)
+    def restore_energy(self, amount: int) -> int:
+        """Restore energy and return actual energy restored"""
+        current_energy = self.get_stat(StatType.ENERGY)
+        max_energy = self.get_stat(StatType.MAX_ENERGY)
+        actual_restoration = min(amount, max_energy - current_energy)
         
-        self.set_stat(StatType.MANA, current_mana + actual_restoration)
+        self.set_stat(StatType.ENERGY, current_energy + actual_restoration)
         return actual_restoration
+
+    # Backward-compatible alias
+    def restore_mana(self, amount: int) -> int:
+        return self.restore_energy(amount)
     
     def add_experience(self, amount: int) -> bool:
         """Add experience and return True if leveled up"""
@@ -134,9 +138,9 @@ class Entity(ABC, SerializableMixin, StringRepresentationMixin):
     def level_up(self) -> None:
         """Level up the entity"""
         self.level += 1
-        # Restore health and mana on level up
+        # Restore health and energy on level up
         self.set_stat(StatType.HEALTH, self.get_stat(StatType.MAX_HEALTH))
-        self.set_stat(StatType.MANA, self.get_stat(StatType.MAX_MANA))
+        self.set_stat(StatType.ENERGY, self.get_stat(StatType.MAX_ENERGY))
         
         # Apply level up bonuses (to be implemented by subclasses)
         self._apply_level_up_bonuses()
@@ -182,11 +186,15 @@ class Entity(ABC, SerializableMixin, StringRepresentationMixin):
         max_health = self.get_stat(StatType.MAX_HEALTH)
         return StatUtils.calculate_percentage(current_health, max_health)
     
+    def get_energy_percentage(self) -> float:
+        """Get current energy as a percentage"""
+        current_energy = self.get_stat(StatType.ENERGY)
+        max_energy = self.get_stat(StatType.MAX_ENERGY)
+        return StatUtils.calculate_percentage(current_energy, max_energy)
+
+    # Backward-compatible alias
     def get_mana_percentage(self) -> float:
-        """Get current mana as a percentage"""
-        current_mana = self.get_stat(StatType.MANA)
-        max_mana = self.get_stat(StatType.MAX_MANA)
-        return StatUtils.calculate_percentage(current_mana, max_mana)
+        return self.get_energy_percentage()
     
     def _get_serialization_data(self) -> Dict[str, Any]:
         """Get the data to be serialized"""

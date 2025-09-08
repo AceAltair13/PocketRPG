@@ -30,6 +30,7 @@ class UIEmojis:
         'inventory': '<:inventory:1414094791465111562>',
         'stats': '📈',
         'character': '👤',
+        'class': '🎭',
         'explore': '🗺️',
         'inspect': '🔍',
         'attack': '⚔️',
@@ -38,8 +39,9 @@ class UIEmojis:
         'mana': '💙',
         'health': '❤️',
         'gold': '💰',
-        'equipment': '⚔️',
-        'location': '📍'
+        'equipment': '<:equipment:1414503735790534717>',
+        'location': '📍',
+        'level': '📊'
     }
     
     # Player class emojis

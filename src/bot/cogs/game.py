@@ -9,7 +9,53 @@ from discord import app_commands
 from ...game import data_loader, RegionManager
 from ...game.enums import PlayerClass, StatType
 # UIEmojis no longer needed - using Emojis constants
-from ..utils import Emojis
+from ..utils import Emojis, EmbedUtils
+
+
+class ScoutEncounterView(discord.ui.View):
+    """Minimal controls after a scout encounter: Fight or Flee."""
+    
+    def __init__(self, player, enemy, bot, enemy_id: str):
+        super().__init__(timeout=60)
+        self.player = player
+        self.enemy = enemy
+        self.bot = bot
+        self.enemy_id = enemy_id
+    
+    @discord.ui.button(label="Fight", style=discord.ButtonStyle.danger, emoji=Emojis.ATTACK)
+    async def fight(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from ...game import Combat
+        from .combat import CombatView
+        # Start combat session
+        combat = Combat([self.player, self.enemy])
+        self.bot.set_combat(interaction.channel_id, combat)
+        
+        # Build combat intro embed
+        embed = discord.Embed(
+            title=f"{Emojis.ATTACK} Combat Started!",
+            description=f"**{self.player.name}** vs **{self.enemy.name}**",
+            color=discord.Color.red()
+        )
+        
+        # Set enemy emoji as thumbnail
+        if hasattr(self.enemy, 'emoji') and self.enemy.emoji:
+            emoji_url = EmbedUtils.emoji_to_url(self.enemy.emoji)
+            if emoji_url:
+                embed.set_thumbnail(url=emoji_url)
+        
+        combat_view = CombatView(self.player, self.enemy, self.bot, self.enemy_id)
+        embed.set_footer(text="Your turn! Choose your action.")
+        await interaction.response.edit_message(embed=embed, view=combat_view)
+    
+    @discord.ui.button(label="Flee", style=discord.ButtonStyle.secondary, emoji=Emojis.SPEED)
+    async def flee(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title=f"{Emojis.SPEED} Fled!",
+            description=f"**{self.player.name}** decided not to engage **{self.enemy.name}**.",
+            color=discord.Color.yellow()
+        )
+        embed.set_footer(text="Use /explore or /activity to continue your adventure.")
+        await interaction.response.edit_message(embed=embed, view=None)
 
 
 class GameCog(commands.Cog):
@@ -144,27 +190,123 @@ class GameCog(commands.Cog):
         
         # Check energy requirements
         energy_cost = activity_data.get('energy_cost', 0)
-        if player.get_stat(player.stats[StatType.MANA]) < energy_cost:  # Using mana as energy for now
+        if player.get_stat(StatType.ENERGY) < energy_cost:
             await interaction.response.send_message(
                 f"{Emojis.ERROR} Not enough energy! You need {energy_cost} energy to perform **{activity_name.title()}**.",
             )
             return
         
-        # Perform activity (simplified for now)
+        # Foraging launches the interactive minigame instead of auto-completing
+        if activity_name.lower() == "foraging":
+            from .foraging_minigame import ForagingMinigameView
+            view = ForagingMinigameView(player, self.bot, activity_data)
+            await interaction.response.send_message(embed=view.embed, view=view)
+            return
+
+        # Scout launches the region's encounter flow (may start combat)
+        if activity_name.lower() == "scout":
+            # Announce action
+            await interaction.response.send_message(
+                f"🎯 **{player.name}** is scouting the area...",
+            )
+            
+            # Simulate brief delay
+            import asyncio
+            await asyncio.sleep(2)
+
+            # Consume energy
+            player.modify_stat(StatType.ENERGY, -energy_cost)
+
+            # Determine encounter
+            encounter = current_region.get_scout_encounter(player)
+            if encounter:
+                enemy_data = encounter["enemy_data"]
+                encounter_type = encounter["encounter_type"]
+
+                # Discover enemy
+                player.discover_enemy(encounter["enemy_id"])
+
+                # Build encounter embed
+                embed = discord.Embed(
+                    title=f"{Emojis.ATTACK} Enemy Encountered!",
+                    description=(
+                        f"**{player.name}** has encountered a **{enemy_data['name']}** while scouting!"
+                    ),
+                    color=discord.Color.red(),
+                )
+
+                enemy_emoji = enemy_data.get("emoji", "👹") if enemy_data else "👹"
+                emoji_url = EmbedUtils.emoji_to_url(enemy_emoji)
+                if emoji_url:
+                    embed.set_thumbnail(url=emoji_url)
+
+                embed.add_field(
+                    name="👹 Enemy Details",
+                    value=(
+                        f"**Name:** {enemy_data['name']}\n"
+                        f"**Level:** {enemy_data['base_level']}\n"
+                        f"**Type:** {encounter_type.title()}"
+                    ),
+                    inline=True,
+                )
+
+                # Create enemy instance and start combat
+                from ...game.entities.enemy import Enemy, EnemyType, EnemyBehavior
+
+                enemy_type_map = {
+                    "normal": EnemyType.NORMAL,
+                    "mini_boss": EnemyType.MINIBOSS,
+                    "boss": EnemyType.BOSS,
+                }
+                enemy_type = enemy_type_map.get(enemy_data.get("type", "normal"), EnemyType.NORMAL)
+
+                enemy_instance = Enemy(
+                    name=enemy_data["name"],
+                    enemy_type=enemy_type,
+                    level=enemy_data["base_level"],
+                    behavior=EnemyBehavior.AGGRESSIVE,
+                    emoji=enemy_data.get("emoji", "👹"),
+                )
+
+                # Load loot table
+                for loot_entry in enemy_data.get("loot_table", []):
+                    enemy_instance.add_loot_item(
+                        item_name=loot_entry["item"],
+                        drop_chance=loot_entry["drop_chance"],
+                        quantity=(
+                            loot_entry["quantity"][0]
+                            if isinstance(loot_entry["quantity"], list)
+                            else loot_entry["quantity"]
+                        ),
+                    )
+
+                # Provide simple choice to fight or flee instead of full combat controls
+                choice_view = ScoutEncounterView(player, enemy_instance, self.bot, encounter["enemy_id"])
+                embed.set_footer(text="Choose to fight or flee.")
+                await interaction.followup.send(embed=embed, view=choice_view)
+                return
+
+            # No encounter case
+            await interaction.followup.send(
+                f"{Emojis.INFO} **{player.name}** scouted the area but found no enemies this time.",
+            )
+            return
+        
+        # Perform non-minigame activities (simplified)
         await interaction.response.send_message(
             f"🎯 **{player.name}** is performing **{activity_name.title()}**...",
         )
         
         # Simulate activity duration
         import asyncio
-        await asyncio.sleep(2)  # Simulate activity time
+        await asyncio.sleep(2)
         
         # Calculate rewards
         experience_reward = activity_data.get('experience_reward', 0)
         player.add_experience(experience_reward)
         
         # Consume energy
-        player.modify_stat(StatType.MANA, -energy_cost)
+        player.modify_stat(StatType.ENERGY, -energy_cost)
         
         # Create results embed
         embed = discord.Embed(
@@ -179,8 +321,7 @@ class GameCog(commands.Cog):
             inline=True
         )
         
-        # Check for level up
-        if player.level > 1:  # Simple level up check
+        if player.level > 1:
             embed.add_field(
                 name=f"{Emojis.COMPLETE} Level Up!",
                 value=f"**{player.name}** is now level {player.level}!",
@@ -188,9 +329,7 @@ class GameCog(commands.Cog):
             )
         
         embed.set_footer(text="Use /character to view your updated stats!")
-        
-        # Send follow-up message
-        await interaction.followup.send(embed=embed, )
+        await interaction.followup.send(embed=embed)
     
     @app_commands.command(name="regions", description="View available regions")
     async def regions(self, interaction: discord.Interaction):
